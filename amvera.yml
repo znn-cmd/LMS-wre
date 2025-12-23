@@ -1,0 +1,31 @@
+# Amvera configuration file for Next.js application
+# This file configures the build and deployment process
+
+# Build configuration
+build:
+  # Working directory - ensure we're in the project root
+  workdir: /
+  
+  # Install dependencies
+  install: npm install
+  
+  # Build command (includes Prisma generation)
+  build: npm run build
+
+# Runtime configuration
+runtime:
+  # Node.js version
+  node: "20"
+  
+  # Start command
+  start: npm start
+  
+  # Application port (Next.js default)
+  port: 3000
+
+# Environment variables (set these in Amvera dashboard):
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
+# SUPABASE_SERVICE_ROLE_KEY
+# DATABASE_URL
+# NEXT_PUBLIC_APP_URL
