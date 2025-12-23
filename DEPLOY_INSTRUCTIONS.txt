@@ -1,0 +1,40 @@
+═══════════════════════════════════════════════════════════════
+  WRE LMS - ИНСТРУКЦИЯ ПО ДЕПЛОЮ НА VERCEL
+═══════════════════════════════════════════════════════════════
+
+📋 БЫСТРЫЕ ШАГИ:
+
+1. НАСТРОЙКА GIT (если нужно):
+   git config user.email "your-email@example.com"
+   git config user.name "Your Name"
+
+2. КОММИТ И ПУШ В GITHUB:
+   git commit -m "Initial commit - WRE LMS Platform"
+   git branch -M main
+   git remote add origin https://github.com/znn-cmd/LMS-wre.git
+   git push -u origin main
+
+3. ДЕПЛОЙ НА VERCEL:
+   - Откройте https://vercel.com
+   - Войдите через GitHub
+   - "Add New Project" → Импортируйте znn-cmd/LMS-wre
+   - Настройки: Next.js (автоматически)
+   - Build Command: prisma generate && next build
+
+4. ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ (в Vercel Dashboard):
+   NEXT_PUBLIC_SUPABASE_URL=https://cndmouefqjfmxgovrzbx.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_AlCrI62hTdb9ZJ5Rr2X_fg_2NF7YpCr
+   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuZG1vdWVmcWpmbXhnb3ZyemJ4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTg4ODgwNCwiZXhwIjoyMDgxNDY0ODA0fQ.KnUYKUEFZy_iraU4BBEIhRb0628tvrzRoF1N_2y9xmM
+   DATABASE_URL=postgresql://postgres.cndmouefqjfmxgovrzbx:Km13nn07!z*@aws-1-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require
+   NEXT_PUBLIC_APP_URL=https://your-project.vercel.app
+
+5. ПОСЛЕ ПЕРВОГО ДЕПЛОЯ:
+   - Скопируйте URL проекта из Vercel
+   - Обновите NEXT_PUBLIC_APP_URL с реальным URL
+   - Передеплойте проект
+
+═══════════════════════════════════════════════════════════════
+Подробные инструкции: DEPLOY.md или QUICK_DEPLOY.md
+═══════════════════════════════════════════════════════════════
+
+

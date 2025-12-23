@@ -1,0 +1,75 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "tests": "Tests",
+    "users": "Users",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "auth": {
+    "title": "Sign in to your account",
+    "invalidCredentials": "Invalid email or password",
+    "signingIn": "Signing in..."
+  },
+  "dashboard": {
+    "admin": {
+      "title": "Admin Dashboard",
+      "metrics": {
+        "totalUsers": "Total Users",
+        "activeUsers": "Active Users",
+        "blockedUsers": "Blocked Users",
+        "inTraining": "In Training",
+        "completedCourses": "Completed Courses",
+        "avgCourseTime": "Avg Course Time",
+        "avgLessonTime": "Avg Lesson Time",
+        "avgTestTime": "Avg Test Time",
+        "testFailureRate": "Test Failure Rate",
+        "retakes": "Retakes"
+      }
+    },
+    "teacher": {
+      "title": "Teacher Dashboard",
+      "metrics": {
+        "completionRate": "Completion Rate",
+        "dropOffRate": "Drop-off Rate",
+        "avgLessonTime": "Avg Lesson Time",
+        "difficultLessons": "Difficult Lessons"
+      }
+    },
+    "teamLead": {
+      "title": "Team Lead Dashboard",
+      "metrics": {
+        "trained": "Trained",
+        "behind": "Behind",
+        "avgTeamTime": "Avg Team Time",
+        "avgTeamScore": "Avg Team Score"
+      }
+    },
+    "student": {
+      "title": "My Learning",
+      "inProgress": "In Progress",
+      "nextLesson": "Next Lesson",
+      "deadlines": "Deadlines",
+      "certificates": "Certificates"
+    }
+  }
+}
+
+

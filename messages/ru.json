@@ -1,0 +1,75 @@
+{
+  "common": {
+    "login": "Войти",
+    "logout": "Выйти",
+    "email": "Email",
+    "password": "Пароль",
+    "submit": "Отправить",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "create": "Создать",
+    "search": "Поиск",
+    "filter": "Фильтр",
+    "export": "Экспорт",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успешно",
+    "dashboard": "Панель управления",
+    "courses": "Курсы",
+    "tests": "Тесты",
+    "users": "Пользователи",
+    "analytics": "Аналитика",
+    "settings": "Настройки"
+  },
+  "auth": {
+    "title": "Войдите в свой аккаунт",
+    "invalidCredentials": "Неверный email или пароль",
+    "signingIn": "Вход..."
+  },
+  "dashboard": {
+    "admin": {
+      "title": "Панель администратора",
+      "metrics": {
+        "totalUsers": "Всего пользователей",
+        "activeUsers": "Активных",
+        "blockedUsers": "Заблокированных",
+        "inTraining": "В обучении",
+        "completedCourses": "Завершённых курсов",
+        "avgCourseTime": "Среднее время курса",
+        "avgLessonTime": "Среднее время урока",
+        "avgTestTime": "Среднее время теста",
+        "testFailureRate": "Процент провалов",
+        "retakes": "Пересдач"
+      }
+    },
+    "teacher": {
+      "title": "Панель преподавателя",
+      "metrics": {
+        "completionRate": "Процент завершения",
+        "dropOffRate": "Процент отвалившихся",
+        "avgLessonTime": "Среднее время урока",
+        "difficultLessons": "Сложные уроки"
+      }
+    },
+    "teamLead": {
+      "title": "Панель тимлида",
+      "metrics": {
+        "trained": "Обучено",
+        "behind": "Отстают",
+        "avgTeamTime": "Среднее время команды",
+        "avgTeamScore": "Средний балл команды"
+      }
+    },
+    "student": {
+      "title": "Моё обучение",
+      "inProgress": "В процессе",
+      "nextLesson": "Следующий урок",
+      "deadlines": "Дедлайны",
+      "certificates": "Сертификаты"
+    }
+  }
+}
+
+

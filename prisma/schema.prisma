@@ -1,0 +1,310 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  TEAM_LEAD
+  STUDENT
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentBlockType {
+  TEXT
+  VIDEO
+  AUDIO
+  FILE
+  GALLERY
+  ASSIGNMENT
+  EMBED
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  MATCHING
+  ORDERING
+  SHORT_TEXT
+}
+
+enum LessonProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TestAttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole  @default(STUDENT)
+  department    String?
+  team          String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  assignedCourses    CourseAssignment[]
+  lessonProgress     LessonProgress[]
+  testAttempts       TestAttempt[]
+  createdCourses     Course[]           @relation("CourseCreator")
+  createdTests       Test[]             @relation("TestCreator")
+  auditLogs          AuditLog[]
+  teamMembers        TeamMember[]       @relation("TeamMember")
+  teamLeads          TeamMember[]       @relation("TeamLead")
+}
+
+model Course {
+  id              String        @id @default(cuid())
+  titleRu         String
+  titleEn         String
+  descriptionRu   String?
+  descriptionEn   String?
+  status          CourseStatus @default(DRAFT)
+  version         Int           @default(1)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  publishedAt     DateTime?
+
+  // Relations
+  creatorId       String
+  creator         User          @relation("CourseCreator", fields: [creatorId], references: [id])
+  modules         Module[]
+  assignments     CourseAssignment[]
+  testAssignments TestAssignment[]
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  titleRu     String
+  titleEn     String
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id                String            @id @default(cuid())
+  moduleId          String
+  module            Module            @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  titleRu           String
+  titleEn           String
+  order             Int
+  estimatedTime     Int               // in minutes
+  minimumTime       Int?              // minimum time for completion (minutes)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  contentBlocks     ContentBlock[]
+  progress          LessonProgress[]
+}
+
+model ContentBlock {
+  id          String            @id @default(cuid())
+  lessonId    String
+  lesson      Lesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type        ContentBlockType
+  order       Int
+  contentRu   Json?
+  contentEn   Json?
+  metadata    Json?             // for file URLs, video IDs, etc.
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Test {
+  id                String            @id @default(cuid())
+  titleRu           String
+  titleEn           String
+  descriptionRu     String?
+  descriptionEn     String?
+  passingScore      Int               @default(70) // percentage
+  timeLimit         Int?              // in minutes
+  maxAttempts       Int?              // null = unlimited
+  allowRetake       Boolean           @default(true)
+  randomizeQuestions Boolean          @default(false)
+  shuffleAnswers    Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  creatorId         String
+  creator           User              @relation("TestCreator", fields: [creatorId], references: [id])
+  questions         Question[]
+  questionBanks     QuestionBank[]
+  assignments       TestAssignment[]
+  attempts          TestAttempt[]
+}
+
+model Question {
+  id          String        @id @default(cuid())
+  testId      String
+  test        Test          @relation(fields: [testId], references: [id], onDelete: Cascade)
+  type        QuestionType
+  order       Int
+  questionRu  String
+  questionEn  String
+  options     Json?         // for choices, matching pairs, etc.
+  correctAnswer Json        // answer key
+  points      Int           @default(1)
+  explanationRu String?
+  explanationEn String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  answers     TestAnswer[]
+}
+
+model QuestionBank {
+  id          String   @id @default(cuid())
+  testId      String
+  test        Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  nameRu      String
+  nameEn      String
+  tags        String[]
+  questions   Json     // array of question IDs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CourseAssignment {
+  id          String    @id @default(cuid())
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy  String?   // User ID
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([courseId, userId])
+}
+
+model TestAssignment {
+  id          String    @id @default(cuid())
+  testId     String
+  test       Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+  courseId   String?
+  course     Course?   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId     String?
+  groupId    String?   // for group assignments
+  deadline   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model LessonProgress {
+  id              String                @id @default(cuid())
+  lessonId        String
+  lesson          Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          LessonProgressStatus  @default(NOT_STARTED)
+  startTime       DateTime?
+  endTime         DateTime?
+  activeTime      Int                   @default(0) // in seconds
+  completedAt     DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@unique([lessonId, userId])
+}
+
+model TestAttempt {
+  id              String            @id @default(cuid())
+  testId          String
+  test            Test              @relation(fields: [testId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          TestAttemptStatus @default(IN_PROGRESS)
+  score           Float?
+  startTime       DateTime          @default(now())
+  endTime         DateTime?
+  timeSpent       Int?              // in seconds
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  answers         TestAnswer[]
+}
+
+model TestAnswer {
+  id              String    @id @default(cuid())
+  attemptId       String
+  attempt         TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question  @relation(fields: [questionId], references: [id])
+  answer          Json      // user's answer
+  isCorrect       Boolean?
+  points          Float?
+  timeSpent       Int?      // seconds on this question
+  answerChanges   Int       @default(0) // number of times answer was changed
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([attemptId, questionId])
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  teamLeadId  String
+  teamLead    User     @relation("TeamLead", fields: [teamLeadId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      User     @relation("TeamMember", fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([teamLeadId, memberId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  entityType  String
+  entityId    String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}
+
+model Certificate {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String?
+  testId      String?
+  titleRu     String
+  titleEn     String
+  issuedAt    DateTime @default(now())
+  metadata    Json?
+}
+
+
