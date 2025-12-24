@@ -47,8 +47,10 @@ export async function POST(
     // Determine media type
     const type = file.type.startsWith('image/') ? 'image' : 'video'
 
-    // Return relative URL path
+    // Return relative URL path (will be converted to API route on client)
     const url = `/uploads/tests/${testId}/${filename}`
+
+    console.log(`Media uploaded for test ${testId}:`, { url, filename, type, size: file.size })
 
     return NextResponse.json({
       url,
@@ -57,10 +59,10 @@ export async function POST(
       type,
       size: file.size,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading media:', error)
     return NextResponse.json(
-      { error: 'Failed to upload media' },
+      { error: error.message || 'Failed to upload media' },
       { status: 500 }
     )
   }

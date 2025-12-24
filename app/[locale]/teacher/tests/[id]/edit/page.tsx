@@ -106,7 +106,10 @@ export default function EditTestPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(questionData),
         })
-        if (!res.ok) throw new Error('Failed to update question')
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to update question' }))
+          throw new Error(errorData.error || 'Failed to update question')
+        }
       } else {
         // Create new question
         const res = await fetch(`/api/tests/${testId}/questions`, {
@@ -114,13 +117,28 @@ export default function EditTestPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(questionData),
         })
-        if (!res.ok) throw new Error('Failed to create question')
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to create question' }))
+          throw new Error(errorData.error || 'Failed to create question')
+        }
       }
-      fetchTest()
+      
+      toast({
+        variant: 'success',
+        title: t('common.saved'),
+        duration: 2000,
+      })
+      
+      await fetchTest()
       setQuestionEditorOpen(false)
       setEditingQuestion(null)
     } catch (error) {
       console.error('Error saving question:', error)
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+      })
       throw error
     }
   }
