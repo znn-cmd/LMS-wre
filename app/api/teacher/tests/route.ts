@@ -9,8 +9,11 @@ export async function GET() {
     })
 
     if (!teacher) {
+      console.log('No teacher found in database')
       return NextResponse.json([])
     }
+
+    console.log(`Fetching tests for teacher: ${teacher.id} (${teacher.email})`)
 
     // Get tests without course relation to avoid errors if courseId column doesn't exist yet
     const tests = await prisma.test.findMany({
@@ -23,7 +26,17 @@ export async function GET() {
       orderBy: { updatedAt: 'desc' },
     })
 
-    console.log(`Found ${tests.length} tests for teacher ${teacher.id}`, tests.map(t => ({ id: t.id, titleEn: t.titleEn, titleRu: t.titleRu })))
+    console.log(`Found ${tests.length} tests for teacher ${teacher.id}`)
+    if (tests.length > 0) {
+      console.log('Test IDs:', tests.map(t => ({ id: t.id, titleEn: t.titleEn, titleRu: t.titleRu, creatorId: t.creatorId })))
+    } else {
+      // Check if there are any tests at all
+      const allTests = await prisma.test.findMany({
+        select: { id: true, titleEn: true, creatorId: true },
+        take: 5,
+      })
+      console.log(`Total tests in database: ${allTests.length}`, allTests.map(t => ({ id: t.id, titleEn: t.titleEn, creatorId: t.creatorId })))
+    }
 
     // Get attempts count and course info for each test
     const testsWithStats = await Promise.all(

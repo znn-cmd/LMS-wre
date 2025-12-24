@@ -70,6 +70,14 @@
       "deadlines": "Дедлайны",
       "certificates": "Сертификаты"
     }
+  },
+  "test": {
+    "mediaUploadSuccess": "Медиа успешно загружено!",
+    "mediaUploadError": "Не удалось загрузить медиа.",
+    "saving": "Сохранение...",
+    "saveChanges": "Сохранить изменения",
+    "deleteError": "Не удалось удалить элемент",
+    "uploading": "Загрузка..."
   }
 }
 

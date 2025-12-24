@@ -70,6 +70,14 @@
       "deadlines": "Deadlines",
       "certificates": "Certificates"
     }
+  },
+  "test": {
+    "mediaUploadSuccess": "Media uploaded successfully!",
+    "mediaUploadError": "Failed to upload media.",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "deleteError": "Failed to delete item",
+    "uploading": "Uploading..."
   }
 }
 
