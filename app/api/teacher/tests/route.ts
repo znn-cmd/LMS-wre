@@ -16,23 +16,40 @@ export async function GET() {
       where: { creatorId: teacher.id },
       include: {
         questions: true,
-        attempts: true,
+        course: {
+          select: {
+            id: true,
+            titleEn: true,
+            titleRu: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    const testsWithStats = tests.map((test) => ({
-      id: test.id,
-      titleEn: test.titleEn,
-      titleRu: test.titleRu,
-      descriptionEn: test.descriptionEn,
-      descriptionRu: test.descriptionRu,
-      passingScore: test.passingScore,
-      timeLimit: test.timeLimit,
-      maxAttempts: test.maxAttempts,
-      questionsCount: test.questions.length,
-      totalAttempts: test.attempts.length,
-    }))
+    // Get attempts count for each test
+    const testsWithStats = await Promise.all(
+      tests.map(async (test) => {
+        const attemptsCount = await prisma.testAttempt.count({
+          where: { testId: test.id },
+        })
+
+        return {
+          id: test.id,
+          titleEn: test.titleEn,
+          titleRu: test.titleRu,
+          descriptionEn: test.descriptionEn,
+          descriptionRu: test.descriptionRu,
+          passingScore: test.passingScore,
+          timeLimit: test.timeLimit,
+          maxAttempts: test.maxAttempts,
+          courseId: test.courseId,
+          course: test.course,
+          questionsCount: test.questions.length,
+          totalAttempts: attemptsCount,
+        }
+      })
+    )
 
     return NextResponse.json(testsWithStats)
   } catch (error) {
