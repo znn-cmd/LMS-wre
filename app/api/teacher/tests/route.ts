@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Force dynamic rendering - disable caching
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   console.log('======= GET /api/teacher/tests called =======')
   console.log('Timestamp:', new Date().toISOString())
@@ -132,12 +136,27 @@ export async function GET() {
 
     console.log(`Returning ${testsWithStats.length} tests to client`)
     console.log('======= END GET /api/teacher/tests =======')
-    return NextResponse.json(testsWithStats)
+    
+    // Add headers to prevent caching
+    return NextResponse.json(testsWithStats, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    })
   } catch (error: any) {
     console.error('ERROR in GET /api/teacher/tests:', error)
     console.error('Error stack:', error.stack)
     // Return empty array instead of error object to prevent .map() errors
-    return NextResponse.json([], { status: 200 })
+    return NextResponse.json([], { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    })
   }
 }
 
