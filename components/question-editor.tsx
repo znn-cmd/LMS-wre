@@ -202,8 +202,6 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
                   <SelectItem value="MULTIPLE_CHOICE">Multiple Choice</SelectItem>
                   <SelectItem value="TRUE_FALSE">True/False</SelectItem>
                   <SelectItem value="SHORT_TEXT">Short Text</SelectItem>
-                  <SelectItem value="MATCHING">Matching</SelectItem>
-                  <SelectItem value="ORDERING">Ordering</SelectItem>
                 </SelectContent>
               </Select>
             </div>

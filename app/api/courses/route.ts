@@ -16,13 +16,31 @@ export async function GET() {
             lessons: true,
           },
         },
+        tests: {
+          select: {
+            id: true,
+            titleEn: true,
+            titleRu: true,
+          },
+          take: 1, // Only get the first linked test
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     })
 
-    return NextResponse.json(courses)
+    // Transform courses to include linked test info directly
+    const coursesWithTests = courses.map(course => {
+      const linkedTest = course.tests?.[0] || null
+      
+      return {
+        ...course,
+        linkedTest,
+      }
+    })
+
+    return NextResponse.json(coursesWithTests)
   } catch (error) {
     console.error('Error fetching courses:', error)
     return NextResponse.json(

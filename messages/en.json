@@ -17,6 +17,8 @@
     "error": "Error",
     "success": "Success",
     "saved": "Saved",
+    "deleted": "Deleted",
+    "deleteError": "Failed to delete",
     "dashboard": "Dashboard",
     "courses": "Courses",
     "tests": "Tests",

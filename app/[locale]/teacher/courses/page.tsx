@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import Link from 'next/link'
 
 export default function TeacherCoursesPage() {
   const t = useTranslations()
+  const locale = useLocale()
   const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -38,7 +39,7 @@ export default function TeacherCoursesPage() {
             <h1 className="text-3xl font-bold tracking-tight">{t('common.courses')}</h1>
             <p className="text-muted-foreground">Create and manage your courses</p>
           </div>
-          <Link href="/en/teacher/courses/new">
+          <Link href={`/${locale}/teacher/courses/new`}>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               {t('common.create')} Course
@@ -65,17 +66,22 @@ export default function TeacherCoursesPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    {course.modules?.length || 0} modules
-                  </p>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>{course.modules?.length || 0} modules</p>
+                    <p>
+                      {course.linkedTest 
+                        ? (locale === 'ru' ? course.linkedTest.titleRu : course.linkedTest.titleEn)
+                        : (locale === 'ru' ? 'Нет теста' : 'No test')}
+                    </p>
+                  </div>
                   <div className="flex gap-2">
-                    <Link href={`/en/teacher/courses/${course.id}/edit`} className="flex-1">
+                    <Link href={`/${locale}/teacher/courses/${course.id}/edit`} className="flex-1">
                       <Button variant="outline" size="sm" className="w-full">
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
                     </Link>
-                    <Link href={`/en/teacher/courses/${course.id}/preview`} className="flex-1">
+                    <Link href={`/${locale}/teacher/courses/${course.id}/preview`} className="flex-1">
                       <Button variant="outline" size="sm" className="w-full">
                         <Eye className="h-3 w-3 mr-1" />
                         Preview
