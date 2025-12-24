@@ -4,12 +4,17 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     // In production, get userId from session
+    // Use findFirst with orderBy to ensure consistent results
     const teacher = await prisma.user.findFirst({
-      where: { role: 'TEACHER' },
+      where: { 
+        role: 'TEACHER',
+        isActive: true,
+      },
+      orderBy: { createdAt: 'asc' }, // Always get the same teacher
     })
 
     if (!teacher) {
-      console.log('No teacher found in database')
+      console.log('No active teacher found in database')
       return NextResponse.json([])
     }
 

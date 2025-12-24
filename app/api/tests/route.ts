@@ -6,12 +6,17 @@ export async function POST(request: Request) {
     const data = await request.json()
 
     // In production, get userId from session
+    // Use findFirst with orderBy to ensure consistent results (same teacher as in GET)
     const teacher = await prisma.user.findFirst({
-      where: { role: 'TEACHER' },
+      where: { 
+        role: 'TEACHER',
+        isActive: true,
+      },
+      orderBy: { createdAt: 'asc' }, // Always get the same teacher
     })
 
     if (!teacher) {
-      console.error('No teacher found when creating test')
+      console.error('No active teacher found when creating test')
       return NextResponse.json(
         { error: 'Teacher not found' },
         { status: 401 }
