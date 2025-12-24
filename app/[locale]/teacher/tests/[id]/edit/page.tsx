@@ -168,14 +168,14 @@ export default function EditTestPage() {
                   <div className="space-y-2">
                     <Label htmlFor="courseId">Course</Label>
                     <Select
-                      value={test.courseId || ''}
-                      onValueChange={(value) => setTest({ ...test, courseId: value || null })}
+                      value={test.courseId || undefined}
+                      onValueChange={(value) => setTest({ ...test, courseId: value === 'none' ? null : value })}
                     >
                       <SelectTrigger id="courseId">
                         <SelectValue placeholder="Select course (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No course</SelectItem>
+                        <SelectItem value="none">No course</SelectItem>
                         {courses.map((course) => (
                           <SelectItem key={course.id} value={course.id}>
                             {course.titleEn} / {course.titleRu}
