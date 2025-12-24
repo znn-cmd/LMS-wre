@@ -7,8 +7,8 @@ const nextConfig = {
   images: {
     domains: [],
   },
-  // Optimize for Vercel
-  output: 'standalone',
+  // Note: output: 'standalone' removed for Amvera compatibility
+  // If deploying to Vercel, you can add: output: 'standalone'
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
