@@ -75,9 +75,18 @@ export default function LessonPage() {
       })
 
       if (res.ok) {
+        const data = await res.json()
         setCompleted(true)
         // Update lesson progress
         fetchLesson()
+        
+        // If course is completed and has a test, redirect to test
+        if (data.courseCompleted && data.testId) {
+          // Small delay to show completion message
+          setTimeout(() => {
+            window.location.href = `/en/student/tests/${data.testId}`
+          }, 1500)
+        }
       }
     } catch (error) {
       console.error('Error completing lesson:', error)
@@ -332,6 +341,11 @@ export default function LessonPage() {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
+          )}
+          {completed && !lesson.nextLessonId && (
+            <div className="text-sm text-muted-foreground">
+              Course completed! You will be redirected to the test...
+            </div>
           )}
         </div>
       </div>

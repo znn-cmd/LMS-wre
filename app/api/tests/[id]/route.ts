@@ -14,6 +14,13 @@ export async function GET(
         questions: {
           orderBy: { order: 'asc' },
         },
+        course: {
+          select: {
+            id: true,
+            titleEn: true,
+            titleRu: true,
+          },
+        },
       },
     })
 
@@ -53,6 +60,7 @@ export async function PATCH(
         timeLimit: data.timeLimit,
         maxAttempts: data.maxAttempts,
         allowRetake: data.allowRetake,
+        courseId: data.courseId || null,
         updatedAt: new Date(),
       },
     })

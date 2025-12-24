@@ -29,6 +29,7 @@ export async function POST(request: Request) {
         allowRetake: data.allowRetake !== false,
         randomizeQuestions: false,
         shuffleAnswers: false,
+        courseId: data.courseId || null,
         creatorId: teacher.id,
       },
     })

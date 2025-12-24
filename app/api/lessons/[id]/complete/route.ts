@@ -21,6 +21,33 @@ export async function POST(
       )
     }
 
+    // Get lesson with course info
+    const lesson = await prisma.lesson.findUnique({
+      where: { id },
+      include: {
+        module: {
+          include: {
+            course: {
+              include: {
+                modules: {
+                  include: {
+                    lessons: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!lesson) {
+      return NextResponse.json(
+        { error: 'Lesson not found' },
+        { status: 404 }
+      )
+    }
+
     // Update or create progress
     const progress = await prisma.lessonProgress.upsert({
       where: {
@@ -47,7 +74,46 @@ export async function POST(
       },
     })
 
-    return NextResponse.json(progress)
+    // Check if course is completed
+    const course = lesson.module.course
+    const totalLessons = course.modules.reduce(
+      (sum, module) => sum + module.lessons.length,
+      0
+    )
+
+    const completedLessons = await prisma.lessonProgress.count({
+      where: {
+        userId: student.id,
+        status: 'COMPLETED',
+        lesson: {
+          module: {
+            courseId: course.id,
+          },
+        },
+      },
+    })
+
+    const courseCompleted = totalLessons > 0 && completedLessons >= totalLessons
+
+    // If course is completed, find associated test
+    let testId = null
+    if (courseCompleted) {
+      const test = await prisma.test.findFirst({
+        where: {
+          courseId: course.id,
+        },
+        select: {
+          id: true,
+        },
+      })
+      testId = test?.id || null
+    }
+
+    return NextResponse.json({
+      ...progress,
+      courseCompleted,
+      testId,
+    })
   } catch (error) {
     console.error('Error completing lesson:', error)
     return NextResponse.json(

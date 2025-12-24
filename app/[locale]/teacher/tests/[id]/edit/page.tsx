@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
@@ -16,14 +17,26 @@ export default function EditTestPage() {
   const router = useRouter()
   const testId = params.id as string
   const [test, setTest] = useState<any>(null)
+  const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (testId) {
       fetchTest()
+      fetchCourses()
     }
   }, [testId])
+  
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch('/api/courses')
+      const data = await res.json()
+      setCourses(data)
+    } catch (error) {
+      console.error('Error fetching courses:', error)
+    }
+  }
 
   const fetchTest = async () => {
     try {
@@ -151,6 +164,28 @@ export default function EditTestPage() {
                       onChange={(e) => setTest({ ...test, timeLimit: e.target.value ? parseInt(e.target.value) : null })}
                       placeholder="No limit"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="courseId">Course</Label>
+                    <Select
+                      value={test.courseId || ''}
+                      onValueChange={(value) => setTest({ ...test, courseId: value || null })}
+                    >
+                      <SelectTrigger id="courseId">
+                        <SelectValue placeholder="Select course (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No course</SelectItem>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.titleEn} / {course.titleRu}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Link this test to a course. Students will be redirected to this test after completing the course.
+                    </p>
                   </div>
                 </div>
               </CardContent>
