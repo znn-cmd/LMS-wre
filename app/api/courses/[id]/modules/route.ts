@@ -14,6 +14,8 @@ export async function POST(
         courseId: id,
         titleEn: data.titleEn,
         titleRu: data.titleRu,
+        descriptionEn: data.descriptionEn || null,
+        descriptionRu: data.descriptionRu || null,
         order: data.order,
       },
     })

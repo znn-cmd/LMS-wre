@@ -29,35 +29,133 @@ export default function EditCoursePage() {
     }
   }, [courseId])
 
-  const fetchCourse = async () => {
+  const fetchCourse = async (preserveLocalChanges = false) => {
     try {
       const res = await fetch(`/api/courses/${courseId}`)
       const data = await res.json()
-      setCourse(data)
+      
+      if (preserveLocalChanges && course) {
+        // Merge local changes with fetched data
+        const mergedModules = data.modules?.map((fetchedModule: any) => {
+          const localModule = course.modules?.find((m: any) => m.id === fetchedModule.id)
+          if (localModule) {
+            // Preserve local changes (title, description) but update other fields
+            return {
+              ...fetchedModule,
+              titleEn: localModule.titleEn,
+              titleRu: localModule.titleRu,
+              descriptionEn: localModule.descriptionEn,
+              descriptionRu: localModule.descriptionRu,
+            }
+          }
+          return fetchedModule
+        }) || []
+        
+        setCourse({
+          ...data,
+          modules: mergedModules,
+          // Preserve other local changes
+          titleEn: course.titleEn || data.titleEn,
+          titleRu: course.titleRu || data.titleRu,
+          descriptionEn: course.descriptionEn || data.descriptionEn,
+          descriptionRu: course.descriptionRu || data.descriptionRu,
+          status: course.status || data.status,
+        })
+      } else {
+        setCourse(data)
+      }
     } catch (error) {
       console.error('Error fetching course:', error)
     } finally {
       setLoading(false)
     }
   }
-
-  // Expose fetchCourse for child components
-  useEffect(() => {
-    if (courseId) {
-      fetchCourse()
+  
+  // Save all module changes before operations that reload data
+  const saveAllModules = async () => {
+    if (!course?.modules || course.modules.length === 0) return
+    
+    try {
+      await Promise.all(
+        course.modules.map((module: any) =>
+          fetch(`/api/modules/${module.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              titleEn: module.titleEn,
+              titleRu: module.titleRu,
+              descriptionEn: module.descriptionEn || null,
+              descriptionRu: module.descriptionRu || null,
+              order: module.order,
+            }),
+          })
+        )
+      )
+    } catch (error) {
+      console.error('Error saving modules:', error)
     }
-  }, [courseId])
+  }
+
+  // Save all module changes before operations that reload data
+  const saveAllModules = async () => {
+    if (!course?.modules || course.modules.length === 0) return
+    
+    try {
+      await Promise.all(
+        course.modules.map((module: any) =>
+          fetch(`/api/modules/${module.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              titleEn: module.titleEn,
+              titleRu: module.titleRu,
+              descriptionEn: module.descriptionEn || null,
+              descriptionRu: module.descriptionRu || null,
+              order: module.order,
+            }),
+          })
+        )
+      )
+    } catch (error) {
+      console.error('Error saving modules:', error)
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
+      // Save course basic info
       const res = await fetch(`/api/courses/${courseId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(course),
+        body: JSON.stringify({
+          titleEn: course.titleEn,
+          titleRu: course.titleRu,
+          descriptionEn: course.descriptionEn,
+          descriptionRu: course.descriptionRu,
+          status: course.status,
+        }),
       })
 
       if (res.ok) {
+        // Save modules
+        if (course.modules && course.modules.length > 0) {
+          await Promise.all(
+            course.modules.map((module: any) =>
+              fetch(`/api/modules/${module.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  titleEn: module.titleEn,
+                  titleRu: module.titleRu,
+                  descriptionEn: module.descriptionEn || null,
+                  descriptionRu: module.descriptionRu || null,
+                  order: module.order,
+                }),
+              })
+            )
+          )
+        }
         router.push('/en/teacher/courses')
       }
     } catch (error) {
@@ -202,20 +300,59 @@ export default function EditCoursePage() {
                   <Button
                     onClick={async () => {
                       try {
+                        // Save all current module changes first
+                        await saveAllModules()
+                        
+                        const newModule = {
+                          id: `temp-${Date.now()}`, // Temporary ID
+                          titleEn: 'New Module',
+                          titleRu: 'Новый модуль',
+                          descriptionEn: '',
+                          descriptionRu: '',
+                          order: (course.modules?.length || 0) + 1,
+                          lessons: [],
+                          createdAt: new Date(),
+                          updatedAt: new Date(),
+                        }
+                        
+                        // Optimistically add to UI
+                        setCourse({
+                          ...course,
+                          modules: [...(course.modules || []), newModule],
+                        })
+                        
                         const res = await fetch(`/api/courses/${courseId}/modules`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
-                            titleEn: 'New Module',
-                            titleRu: 'Новый модуль',
-                            order: (course.modules?.length || 0) + 1,
+                            titleEn: newModule.titleEn,
+                            titleRu: newModule.titleRu,
+                            descriptionEn: newModule.descriptionEn,
+                            descriptionRu: newModule.descriptionRu,
+                            order: newModule.order,
                           }),
                         })
+                        
                         if (res.ok) {
-                          fetchCourse()
+                          const createdModule = await res.json()
+                          // Replace temp module with real one
+                          setCourse({
+                            ...course,
+                            modules: course.modules?.map((m: any) =>
+                              m.id === newModule.id ? createdModule : m
+                            ) || [createdModule],
+                          })
+                        } else {
+                          // Revert on error
+                          setCourse({
+                            ...course,
+                            modules: course.modules?.filter((m: any) => m.id !== newModule.id) || [],
+                          })
                         }
                       } catch (error) {
                         console.error('Error adding module:', error)
+                        // Revert on error
+                        fetchCourse()
                       }
                     }}
                   >
@@ -255,6 +392,44 @@ export default function EditCoursePage() {
                               }}
                               placeholder="Module Title (Russian)"
                             />
+                            <div className="space-y-2">
+                              <Label htmlFor={`descriptionEn-${module.id}`} className="text-sm text-muted-foreground">
+                                Description (English)
+                              </Label>
+                              <textarea
+                                id={`descriptionEn-${module.id}`}
+                                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                value={module.descriptionEn || ''}
+                                onChange={(e) => {
+                                  const newModules = [...(course.modules || [])]
+                                  newModules[moduleIndex] = {
+                                    ...module,
+                                    descriptionEn: e.target.value,
+                                  }
+                                  setCourse({ ...course, modules: newModules })
+                                }}
+                                placeholder="Module description in English..."
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`descriptionRu-${module.id}`} className="text-sm text-muted-foreground">
+                                Description (Russian)
+                              </Label>
+                              <textarea
+                                id={`descriptionRu-${module.id}`}
+                                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                value={module.descriptionRu || ''}
+                                onChange={(e) => {
+                                  const newModules = [...(course.modules || [])]
+                                  newModules[moduleIndex] = {
+                                    ...module,
+                                    descriptionRu: e.target.value,
+                                  }
+                                  setCourse({ ...course, modules: newModules })
+                                }}
+                                placeholder="Описание модуля на русском..."
+                              />
+                            </div>
                           </div>
                           <div className="flex gap-2 ml-4">
                             <Button
@@ -269,7 +444,28 @@ export default function EditCoursePage() {
                                   newModules[moduleIndex].order = moduleIndex + 1
                                   newModules[moduleIndex - 1].order = moduleIndex
                                   setCourse({ ...course, modules: newModules })
-                                  await handleSave()
+                                  // Save modules order and all changes
+                                  try {
+                                    await Promise.all(
+                                      newModules.map((module: any) =>
+                                        fetch(`/api/modules/${module.id}`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            titleEn: module.titleEn,
+                                            titleRu: module.titleRu,
+                                            descriptionEn: module.descriptionEn || null,
+                                            descriptionRu: module.descriptionRu || null,
+                                            order: module.order,
+                                          }),
+                                        })
+                                      )
+                                    )
+                                  } catch (error) {
+                                    console.error('Error saving modules:', error)
+                                    // Revert on error
+                                    fetchCourse()
+                                  }
                                 }
                               }}
                             >
@@ -287,7 +483,28 @@ export default function EditCoursePage() {
                                   newModules[moduleIndex].order = moduleIndex + 1
                                   newModules[moduleIndex + 1].order = moduleIndex + 2
                                   setCourse({ ...course, modules: newModules })
-                                  await handleSave()
+                                  // Save modules order and all changes
+                                  try {
+                                    await Promise.all(
+                                      newModules.map((module: any) =>
+                                        fetch(`/api/modules/${module.id}`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            titleEn: module.titleEn,
+                                            titleRu: module.titleRu,
+                                            descriptionEn: module.descriptionEn || null,
+                                            descriptionRu: module.descriptionRu || null,
+                                            order: module.order,
+                                          }),
+                                        })
+                                      )
+                                    )
+                                  } catch (error) {
+                                    console.error('Error saving modules:', error)
+                                    // Revert on error
+                                    fetchCourse()
+                                  }
                                 }
                               }}
                             >
@@ -299,6 +516,9 @@ export default function EditCoursePage() {
                               onClick={async () => {
                                 if (confirm('Delete this module and all its lessons?')) {
                                   try {
+                                    // Save all current module changes first
+                                    await saveAllModules()
+                                    
                                     const res = await fetch(`/api/modules/${module.id}`, {
                                       method: 'DELETE',
                                     })
@@ -325,21 +545,61 @@ export default function EditCoursePage() {
                               variant="outline"
                               onClick={async () => {
                                 try {
+                                  // Save all current module changes first
+                                  await saveAllModules()
+                                  
+                                  const newLesson = {
+                                    id: `temp-${Date.now()}`,
+                                    titleEn: 'New Lesson',
+                                    titleRu: 'Новый урок',
+                                    order: (module.lessons?.length || 0) + 1,
+                                    estimatedTime: 15,
+                                  }
+                                  
+                                  // Optimistically add to UI
+                                  const newModules = [...(course.modules || [])]
+                                  const moduleIndex = newModules.findIndex((m: any) => m.id === module.id)
+                                  if (moduleIndex !== -1) {
+                                    newModules[moduleIndex] = {
+                                      ...newModules[moduleIndex],
+                                      lessons: [...(newModules[moduleIndex].lessons || []), newLesson],
+                                    }
+                                    setCourse({ ...course, modules: newModules })
+                                  }
+                                  
                                   const res = await fetch(`/api/modules/${module.id}/lessons`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                      titleEn: 'New Lesson',
-                                      titleRu: 'Новый урок',
-                                      order: (module.lessons?.length || 0) + 1,
-                                      estimatedTime: 15,
+                                      titleEn: newLesson.titleEn,
+                                      titleRu: newLesson.titleRu,
+                                      order: newLesson.order,
+                                      estimatedTime: newLesson.estimatedTime,
                                     }),
                                   })
+                                  
                                   if (res.ok) {
+                                    const createdLesson = await res.json()
+                                    // Replace temp lesson with real one
+                                    const updatedModules = [...(course.modules || [])]
+                                    const updatedModuleIndex = updatedModules.findIndex((m: any) => m.id === module.id)
+                                    if (updatedModuleIndex !== -1) {
+                                      updatedModules[updatedModuleIndex] = {
+                                        ...updatedModules[updatedModuleIndex],
+                                        lessons: updatedModules[updatedModuleIndex].lessons?.map((l: any) =>
+                                          l.id === newLesson.id ? createdLesson : l
+                                        ) || [createdLesson],
+                                      }
+                                      setCourse({ ...course, modules: updatedModules })
+                                    }
+                                  } else {
+                                    // Revert on error
                                     fetchCourse()
                                   }
                                 } catch (error) {
                                   console.error('Error adding lesson:', error)
+                                  // Revert on error
+                                  fetchCourse()
                                 }
                               }}
                             >
@@ -377,6 +637,9 @@ export default function EditCoursePage() {
                                 onClick={async () => {
                                   if (confirm('Delete this lesson?')) {
                                     try {
+                                      // Save all current module changes first
+                                      await saveAllModules()
+                                      
                                       const res = await fetch(`/api/lessons/${lesson.id}`, {
                                         method: 'DELETE',
                                       })
