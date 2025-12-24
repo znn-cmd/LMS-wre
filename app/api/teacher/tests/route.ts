@@ -33,9 +33,19 @@ export async function GET() {
       // Check if there are any tests at all
       const allTests = await prisma.test.findMany({
         select: { id: true, titleEn: true, creatorId: true },
-        take: 5,
+        take: 10,
       })
-      console.log(`Total tests in database: ${allTests.length}`, allTests.map(t => ({ id: t.id, titleEn: t.titleEn, creatorId: t.creatorId })))
+      console.log(`Total tests in database: ${allTests.length}`)
+      console.log('All test creatorIds:', allTests.map(t => ({ id: t.id, titleEn: t.titleEn, creatorId: t.creatorId })))
+      console.log(`Looking for teacher ID: ${teacher.id}`)
+      console.log(`Tests with matching creatorId:`, allTests.filter(t => t.creatorId === teacher.id))
+      
+      // Also check all teachers
+      const allTeachers = await prisma.user.findMany({
+        where: { role: 'TEACHER' },
+        select: { id: true, email: true },
+      })
+      console.log(`All teachers in database:`, allTeachers.map(t => ({ id: t.id, email: t.email })))
     }
 
     // Get attempts count and course info for each test

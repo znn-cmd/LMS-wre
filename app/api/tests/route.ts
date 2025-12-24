@@ -11,11 +11,14 @@ export async function POST(request: Request) {
     })
 
     if (!teacher) {
+      console.error('No teacher found when creating test')
       return NextResponse.json(
         { error: 'Teacher not found' },
         { status: 401 }
       )
     }
+
+    console.log(`Creating test for teacher: ${teacher.id} (${teacher.email})`)
 
     const test = await prisma.test.create({
       data: {
@@ -32,6 +35,13 @@ export async function POST(request: Request) {
         courseId: data.courseId || null,
         creatorId: teacher.id,
       },
+    })
+
+    console.log(`Test created successfully:`, { 
+      id: test.id, 
+      titleEn: test.titleEn, 
+      creatorId: test.creatorId,
+      teacherId: teacher.id 
     })
 
     return NextResponse.json(test)
