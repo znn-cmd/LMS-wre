@@ -56,19 +56,29 @@ export default function EditTestPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
+      // Prepare data for saving - ensure courseId is null if "none"
+      const dataToSave = {
+        ...test,
+        courseId: test.courseId === 'none' || !test.courseId ? null : test.courseId,
+      }
+
       const res = await fetch(`/api/tests/${testId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(test),
+        body: JSON.stringify(dataToSave),
       })
 
-      if (res.ok) {
-        alert('Test saved successfully!')
-        fetchTest()
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to save test')
       }
+
+      // Silently save - no alert
+      await fetchTest()
     } catch (error) {
       console.error('Error saving test:', error)
-      alert('Error saving test')
+      // Only show error if something went wrong
+      alert('Error saving test: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       setSaving(false)
     }
@@ -225,7 +235,7 @@ export default function EditTestPage() {
                   <div className="space-y-2">
                     <Label htmlFor="courseId">Course</Label>
                     <Select
-                      value={test.courseId || undefined}
+                      value={test.courseId || 'none'}
                       onValueChange={(value) => setTest({ ...test, courseId: value === 'none' ? null : value })}
                     >
                       <SelectTrigger id="courseId">

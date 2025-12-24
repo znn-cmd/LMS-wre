@@ -49,27 +49,30 @@ export async function PATCH(
     const { id } = await params
     const data = await request.json()
 
+    // Ensure courseId is null if not provided or is "none"
+    const courseId = data.courseId && data.courseId !== 'none' ? data.courseId : null
+
     const test = await prisma.test.update({
       where: { id },
       data: {
-        titleEn: data.titleEn,
-        titleRu: data.titleRu,
-        descriptionEn: data.descriptionEn,
-        descriptionRu: data.descriptionRu,
-        passingScore: data.passingScore,
-        timeLimit: data.timeLimit,
-        maxAttempts: data.maxAttempts,
-        allowRetake: data.allowRetake,
-        courseId: data.courseId || null,
+        titleEn: data.titleEn || '',
+        titleRu: data.titleRu || '',
+        descriptionEn: data.descriptionEn || null,
+        descriptionRu: data.descriptionRu || null,
+        passingScore: data.passingScore || 70,
+        timeLimit: data.timeLimit || null,
+        maxAttempts: data.maxAttempts || null,
+        allowRetake: data.allowRetake !== false,
+        courseId,
         updatedAt: new Date(),
       },
     })
 
     return NextResponse.json(test)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating test:', error)
     return NextResponse.json(
-      { error: 'Failed to update test' },
+      { error: error.message || 'Failed to update test' },
       { status: 500 }
     )
   }
