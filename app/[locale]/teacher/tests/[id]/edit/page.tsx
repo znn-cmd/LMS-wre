@@ -12,10 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Save, Plus, Trash2, Edit } from 'lucide-react'
 import Link from 'next/link'
 import { QuestionEditor } from '@/components/question-editor'
+import { useToast } from '@/components/ui/use-toast'
+import { useTranslations } from 'next-intl'
 
 export default function EditTestPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations()
+  const { toast } = useToast()
   const testId = params.id as string
   const [test, setTest] = useState<any>(null)
   const [courses, setCourses] = useState<any[]>([])
@@ -73,12 +77,21 @@ export default function EditTestPage() {
         throw new Error(errorData.error || 'Failed to save test')
       }
 
-      // Silently save - no alert
+      // Show success toast
+      toast({
+        variant: 'success',
+        title: t('common.saved'),
+        duration: 2000,
+      })
+
       await fetchTest()
     } catch (error) {
       console.error('Error saving test:', error)
-      // Only show error if something went wrong
-      alert('Error saving test: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+      })
     } finally {
       setSaving(false)
     }

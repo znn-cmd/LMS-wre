@@ -20,7 +20,10 @@ export default function TeacherTestsPage() {
 
   const fetchTests = async () => {
     try {
-      const res = await fetch('/api/teacher/tests')
+      // Add cache busting to ensure fresh data
+      const res = await fetch(`/api/teacher/tests?t=${Date.now()}`, {
+        cache: 'no-store',
+      })
       if (!res.ok) {
         console.error('Failed to fetch tests:', res.status, res.statusText)
         setTests([])
@@ -29,6 +32,7 @@ export default function TeacherTestsPage() {
       const data = await res.json()
       // Ensure data is an array
       if (Array.isArray(data)) {
+        console.log(`Loaded ${data.length} tests`)
         setTests(data)
       } else {
         console.error('Invalid response format:', data)

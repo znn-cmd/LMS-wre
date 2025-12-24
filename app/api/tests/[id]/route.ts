@@ -68,6 +68,8 @@ export async function PATCH(
       },
     })
 
+    console.log(`Test ${id} updated successfully:`, { titleEn: test.titleEn, titleRu: test.titleRu, courseId: test.courseId })
+
     return NextResponse.json(test)
   } catch (error: any) {
     console.error('Error updating test:', error)

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, Save, ArrowLeft, Upload, X, Image as ImageIcon, File as FileIcon, Music } from 'lucide-react'
 import Link from 'next/link'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function EditLessonPage() {
   const t = useTranslations()

@@ -20,10 +20,10 @@ export async function GET() {
           orderBy: { order: 'asc' },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
     })
 
-    console.log(`Found ${tests.length} tests for teacher ${teacher.id}`)
+    console.log(`Found ${tests.length} tests for teacher ${teacher.id}`, tests.map(t => ({ id: t.id, titleEn: t.titleEn, titleRu: t.titleRu })))
 
     // Get attempts count and course info for each test
     const testsWithStats = await Promise.all(

@@ -13,9 +13,11 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, ArrowUp, ArrowDown, Save, Eye, Pencil } from 'lucide-react'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function EditCoursePage() {
   const t = useTranslations()
+  const { toast } = useToast()
   const params = useParams()
   const router = useRouter()
   const courseId = params.id as string
@@ -131,10 +133,22 @@ export default function EditCoursePage() {
             )
           )
         }
+        toast({
+          variant: 'success',
+          title: t('common.saved'),
+          duration: 2000,
+        })
         router.push('/en/teacher/courses')
+      } else {
+        throw new Error('Failed to save course')
       }
     } catch (error) {
       console.error('Error saving course:', error)
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+      })
     } finally {
       setSaving(false)
     }
