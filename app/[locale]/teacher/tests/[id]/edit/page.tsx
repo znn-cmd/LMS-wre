@@ -9,7 +9,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Save, Plus, Trash2, Edit } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Edit, AlertTriangle } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import Link from 'next/link'
 import { QuestionEditor } from '@/components/question-editor'
 import { useToast } from '@/components/ui/use-toast'
@@ -25,6 +35,8 @@ export default function EditTestPage() {
   const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [questionEditorOpen, setQuestionEditorOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<any>(null)
 
@@ -94,6 +106,39 @@ export default function EditTestPage() {
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/tests/${testId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to delete test')
+      }
+
+      toast({
+        variant: 'success',
+        title: t('common.deleted'),
+        duration: 2000,
+      })
+
+      // Redirect to tests list
+      router.push('/en/teacher/tests')
+    } catch (error) {
+      console.error('Error deleting test:', error)
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('common.deleteError'),
+      })
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
     }
   }
 
@@ -395,6 +440,31 @@ export default function EditTestPage() {
           question={editingQuestion}
           testId={testId}
         />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Delete Test?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the test, 
+                all its questions, student attempts, and associated media files.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? 'Deleting...' : 'Delete Test'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   )
