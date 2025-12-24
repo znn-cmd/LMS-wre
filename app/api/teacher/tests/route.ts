@@ -4,20 +4,25 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     // In production, get userId from session
-    // Use findFirst with orderBy to ensure consistent results
-    const teacher = await prisma.user.findFirst({
+    // First, get all teachers to see what we have
+    const allTeachers = await prisma.user.findMany({
       where: { 
         role: 'TEACHER',
         isActive: true,
       },
-      orderBy: { createdAt: 'asc' }, // Always get the same teacher
+      orderBy: { createdAt: 'asc' },
     })
-
-    if (!teacher) {
+    
+    console.log(`Found ${allTeachers.length} active teachers:`, allTeachers.map(t => ({ id: t.id, email: t.email, createdAt: t.createdAt })))
+    
+    if (allTeachers.length === 0) {
       console.log('No active teacher found in database')
       return NextResponse.json([])
     }
-
+    
+    // Use the first teacher (same logic as in POST /api/tests)
+    const teacher = allTeachers[0]
+    
     console.log(`Fetching tests for teacher: ${teacher.id} (${teacher.email})`)
 
     // Get tests without course relation to avoid errors if courseId column doesn't exist yet
@@ -41,16 +46,19 @@ export async function GET() {
         take: 10,
       })
       console.log(`Total tests in database: ${allTests.length}`)
-      console.log('All test creatorIds:', allTests.map(t => ({ id: t.id, titleEn: t.titleEn, creatorId: t.creatorId })))
-      console.log(`Looking for teacher ID: ${teacher.id}`)
-      console.log(`Tests with matching creatorId:`, allTests.filter(t => t.creatorId === teacher.id))
-      
-      // Also check all teachers
-      const allTeachers = await prisma.user.findMany({
-        where: { role: 'TEACHER' },
-        select: { id: true, email: true },
-      })
-      console.log(`All teachers in database:`, allTeachers.map(t => ({ id: t.id, email: t.email })))
+      if (allTests.length > 0) {
+        console.log('All test creatorIds:', allTests.map(t => ({ id: t.id, titleEn: t.titleEn, creatorId: t.creatorId })))
+        console.log(`Looking for teacher ID: ${teacher.id}`)
+        const matchingTests = allTests.filter(t => t.creatorId === teacher.id)
+        console.log(`Tests with matching creatorId (${teacher.id}):`, matchingTests.length, matchingTests)
+        
+        // Check if there are tests with different creatorIds
+        const differentCreatorIds = [...new Set(allTests.map(t => t.creatorId))].filter(id => id !== teacher.id)
+        if (differentCreatorIds.length > 0) {
+          console.log(`WARNING: Found tests with different creatorIds:`, differentCreatorIds)
+          console.log(`These tests belong to other teachers and won't be shown.`)
+        }
+      }
     }
 
     // Get attempts count and course info for each test
