@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
+  console.log('======= GET /api/teacher/tests called =======')
+  console.log('Timestamp:', new Date().toISOString())
+  
   try {
+    console.log('Fetching teachers from database...')
+    
     // In production, get userId from session
     // First, get all teachers to see what we have
     const allTeachers = await prisma.user.findMany({
@@ -125,9 +130,12 @@ export async function GET() {
       })
     )
 
+    console.log(`Returning ${testsWithStats.length} tests to client`)
+    console.log('======= END GET /api/teacher/tests =======')
     return NextResponse.json(testsWithStats)
   } catch (error: any) {
-    console.error('Error fetching teacher tests:', error)
+    console.error('ERROR in GET /api/teacher/tests:', error)
+    console.error('Error stack:', error.stack)
     // Return empty array instead of error object to prevent .map() errors
     return NextResponse.json([], { status: 200 })
   }
