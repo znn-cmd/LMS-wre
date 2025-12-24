@@ -15,40 +15,58 @@ export default function TeacherTestsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('TeacherTestsPage mounted, fetching tests...')
     fetchTests()
     
     // Refresh tests when page becomes visible (user returns from editing)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
+        console.log('Page became visible, refreshing tests...')
         fetchTests()
       }
     }
     
+    // Also refresh on focus (when user switches back to tab)
+    const handleFocus = () => {
+      console.log('Window focused, refreshing tests...')
+      fetchTests()
+    }
+    
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
     }
   }, [])
 
   const fetchTests = async () => {
     try {
+      console.log('Fetching tests from /api/teacher/tests...')
       // Add cache busting to ensure fresh data
       const res = await fetch(`/api/teacher/tests?t=${Date.now()}`, {
         cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
       })
+      console.log('Response status:', res.status, res.statusText)
       if (!res.ok) {
         console.error('Failed to fetch tests:', res.status, res.statusText)
+        const errorText = await res.text()
+        console.error('Error response:', errorText)
         setTests([])
         return
       }
       const data = await res.json()
+      console.log('Received data:', data)
       // Ensure data is an array
       if (Array.isArray(data)) {
-        console.log(`Loaded ${data.length} tests`)
+        console.log(`Loaded ${data.length} tests:`, data.map(t => ({ id: t.id, titleEn: t.titleEn })))
         setTests(data)
       } else {
-        console.error('Invalid response format:', data)
+        console.error('Invalid response format (not an array):', data)
         setTests([])
       }
     } catch (error) {
