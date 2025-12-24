@@ -39,7 +39,12 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
       setPoints(question.points || 1)
       setExplanationEn(question.explanationEn || '')
       setExplanationRu(question.explanationRu || '')
-      setMediaUrl(question.mediaUrl || '')
+      // Convert stored path to API route for display
+      const storedUrl = question.mediaUrl || ''
+      const displayUrl = storedUrl && storedUrl.startsWith('/uploads/') 
+        ? `/api${storedUrl}` 
+        : storedUrl
+      setMediaUrl(displayUrl)
       setMediaType(question.mediaType || null)
       setOptions(question.options ? (Array.isArray(question.options) ? question.options : []) : [])
       setCorrectAnswer(question.correctAnswer || null)
@@ -77,21 +82,25 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('testId', testId)
 
       const res = await fetch(`/api/tests/${testId}/upload-media`, {
         method: 'POST',
         body: formData,
       })
 
-      if (!res.ok) throw new Error('Upload failed')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Upload failed' }))
+        throw new Error(errorData.error || 'Upload failed')
+      }
 
       const data = await res.json()
-      setMediaUrl(data.url)
+      // Use API route for serving files
+      const apiUrl = `/api/uploads/${data.url.replace(/^\//, '')}`
+      setMediaUrl(apiUrl)
       setMediaType(data.type)
     } catch (error) {
       console.error('Error uploading media:', error)
-      alert('Failed to upload media')
+      alert('Failed to upload media: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       setUploading(false)
     }
@@ -113,6 +122,12 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
         finalCorrectAnswer = correctAnswer || ''
       }
 
+      // Convert API route back to relative path for storage
+      let storedMediaUrl = mediaUrl
+      if (mediaUrl && mediaUrl.startsWith('/api/uploads/')) {
+        storedMediaUrl = mediaUrl.replace('/api/uploads/', '/uploads/')
+      }
+
       const questionData = {
         type: questionType,
         questionEn,
@@ -120,7 +135,7 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
         points,
         explanationEn: explanationEn || null,
         explanationRu: explanationRu || null,
-        mediaUrl: mediaUrl || null,
+        mediaUrl: storedMediaUrl || null,
         mediaType: mediaType || null,
         options: options.length > 0 ? options : null,
         correctAnswer: finalCorrectAnswer,
@@ -130,7 +145,8 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
       onClose()
     } catch (error) {
       console.error('Error saving question:', error)
-      alert('Failed to save question')
+      // Error will be handled by parent component
+      throw error
     } finally {
       setSaving(false)
     }

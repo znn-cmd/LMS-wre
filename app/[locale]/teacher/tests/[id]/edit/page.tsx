@@ -317,11 +317,17 @@ export default function EditTestPage() {
                         <div className="space-y-3">
                           {question.mediaUrl && (
                             <div className="rounded border overflow-hidden">
-                              {question.mediaType === 'image' ? (
-                                <img src={question.mediaUrl} alt="Question media" className="w-full max-h-48 object-contain" />
-                              ) : question.mediaType === 'video' ? (
-                                <video src={question.mediaUrl} className="w-full max-h-48" controls />
-                              ) : null}
+                              {(() => {
+                                // Convert stored path to API route for display
+                                const mediaUrl = question.mediaUrl.startsWith('/uploads/')
+                                  ? `/api${question.mediaUrl}`
+                                  : question.mediaUrl
+                                return question.mediaType === 'image' ? (
+                                  <img src={mediaUrl} alt="Question media" className="w-full max-h-48 object-contain" />
+                                ) : question.mediaType === 'video' ? (
+                                  <video src={mediaUrl} className="w-full max-h-48" controls />
+                                ) : null
+                              })()}
                             </div>
                           )}
                           <div className="space-y-2">

@@ -13,9 +13,9 @@ export async function PATCH(
       where: { id },
       data: {
         type: data.type,
-        questionEn: data.questionEn,
-        questionRu: data.questionRu,
-        options: data.options || null,
+        questionEn: data.questionEn || '',
+        questionRu: data.questionRu || '',
+        options: data.options ? (typeof data.options === 'string' ? JSON.parse(data.options) : data.options) : null,
         correctAnswer: data.correctAnswer || {},
         points: data.points || 1,
         explanationEn: data.explanationEn || null,
@@ -24,6 +24,8 @@ export async function PATCH(
         mediaType: data.mediaType || null,
       },
     })
+
+    console.log(`Question ${id} updated:`, { type: question.type, hasMedia: !!question.mediaUrl })
 
     return NextResponse.json(question)
   } catch (error: any) {
