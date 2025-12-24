@@ -12,28 +12,43 @@ export async function GET() {
       return NextResponse.json([])
     }
 
+    // Get tests without course relation to avoid errors if courseId column doesn't exist yet
     const tests = await prisma.test.findMany({
       where: { creatorId: teacher.id },
       include: {
         questions: true,
-        course: {
-          select: {
-            id: true,
-            titleEn: true,
-            titleRu: true,
-          },
-        },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    // Get attempts count for each test
+    // Get attempts count and course info for each test
     const testsWithStats = await Promise.all(
-      testsWithCourses.map(async (test) => {
+      tests.map(async (test) => {
         try {
           const attemptsCount = await prisma.testAttempt.count({
             where: { testId: test.id },
           })
+
+          // Get course info if courseId exists (handle case where column might not exist in DB)
+          let course = null
+          let courseId = null
+          try {
+            // Try to access courseId - it might not exist if migration hasn't run
+            courseId = (test as any).courseId || null
+            if (courseId) {
+              course = await prisma.course.findUnique({
+                where: { id: courseId },
+                select: {
+                  id: true,
+                  titleEn: true,
+                  titleRu: true,
+                },
+              })
+            }
+          } catch (courseErr) {
+            // courseId field might not exist in DB yet - ignore
+            console.log('CourseId field may not exist yet:', courseErr)
+          }
 
           return {
             id: test.id,
@@ -44,8 +59,8 @@ export async function GET() {
             passingScore: test.passingScore,
             timeLimit: test.timeLimit,
             maxAttempts: test.maxAttempts,
-            courseId: (test as any).courseId || null,
-            course: test.course || null,
+            courseId,
+            course,
             questionsCount: test.questions?.length || 0,
             totalAttempts: attemptsCount,
           }
@@ -61,8 +76,8 @@ export async function GET() {
             passingScore: test.passingScore,
             timeLimit: test.timeLimit,
             maxAttempts: test.maxAttempts,
-            courseId: (test as any).courseId || null,
-            course: test.course || null,
+            courseId: null,
+            course: null,
             questionsCount: test.questions?.length || 0,
             totalAttempts: 0,
           }
