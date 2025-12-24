@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
@@ -334,13 +334,18 @@ export default function EditLessonPage() {
                                   ? block.contentEn
                                   : block.contentEn?.content || ''
                               }
-                              onChange={(value) => {
-                                const newBlocks = [...(lesson.contentBlocks || [])]
-                                newBlocks[index] = {
-                                  ...block,
-                                  contentEn: { type: 'html', content: value },
-                                }
-                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              onChange={(value: string) => {
+                                setLesson((prev: any) => {
+                                  const newBlocks = [...(prev.contentBlocks || [])]
+                                  const blockIndex = newBlocks.findIndex((b: any) => b.id === block.id)
+                                  if (blockIndex !== -1) {
+                                    newBlocks[blockIndex] = {
+                                      ...newBlocks[blockIndex],
+                                      contentEn: { type: 'html', content: value },
+                                    }
+                                  }
+                                  return { ...prev, contentBlocks: newBlocks }
+                                })
                               }}
                               placeholder="Enter English content..."
                             />
@@ -352,13 +357,18 @@ export default function EditLessonPage() {
                                   ? block.contentRu
                                   : block.contentRu?.content || ''
                               }
-                              onChange={(value) => {
-                                const newBlocks = [...(lesson.contentBlocks || [])]
-                                newBlocks[index] = {
-                                  ...block,
-                                  contentRu: { type: 'html', content: value },
-                                }
-                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              onChange={(value: string) => {
+                                setLesson((prev: any) => {
+                                  const newBlocks = [...(prev.contentBlocks || [])]
+                                  const blockIndex = newBlocks.findIndex((b: any) => b.id === block.id)
+                                  if (blockIndex !== -1) {
+                                    newBlocks[blockIndex] = {
+                                      ...newBlocks[blockIndex],
+                                      contentRu: { type: 'html', content: value },
+                                    }
+                                  }
+                                  return { ...prev, contentBlocks: newBlocks }
+                                })
                               }}
                               placeholder="Введите русский контент..."
                             />
@@ -535,13 +545,18 @@ export default function EditLessonPage() {
                                   ? block.contentEn
                                   : block.contentEn?.content || ''
                               }
-                              onChange={(value) => {
-                                const newBlocks = [...(lesson.contentBlocks || [])]
-                                newBlocks[index] = {
-                                  ...block,
-                                  contentEn: { type: 'html', content: value },
-                                }
-                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              onChange={(value: string) => {
+                                setLesson((prev: any) => {
+                                  const newBlocks = [...(prev.contentBlocks || [])]
+                                  const blockIndex = newBlocks.findIndex((b: any) => b.id === block.id)
+                                  if (blockIndex !== -1) {
+                                    newBlocks[blockIndex] = {
+                                      ...newBlocks[blockIndex],
+                                      contentEn: { type: 'html', content: value },
+                                    }
+                                  }
+                                  return { ...prev, contentBlocks: newBlocks }
+                                })
                               }}
                               placeholder="Enter assignment description..."
                             />
@@ -553,13 +568,18 @@ export default function EditLessonPage() {
                                   ? block.contentRu
                                   : block.contentRu?.content || ''
                               }
-                              onChange={(value) => {
-                                const newBlocks = [...(lesson.contentBlocks || [])]
-                                newBlocks[index] = {
-                                  ...block,
-                                  contentRu: { type: 'html', content: value },
-                                }
-                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              onChange={(value: string) => {
+                                setLesson((prev: any) => {
+                                  const newBlocks = [...(prev.contentBlocks || [])]
+                                  const blockIndex = newBlocks.findIndex((b: any) => b.id === block.id)
+                                  if (blockIndex !== -1) {
+                                    newBlocks[blockIndex] = {
+                                      ...newBlocks[blockIndex],
+                                      contentRu: { type: 'html', content: value },
+                                    }
+                                  }
+                                  return { ...prev, contentBlocks: newBlocks }
+                                })
                               }}
                               placeholder="Введите описание задания..."
                             />

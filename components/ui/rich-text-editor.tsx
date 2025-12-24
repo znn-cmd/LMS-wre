@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Label } from '@/components/ui/label'
 
@@ -27,6 +27,23 @@ export function RichTextEditor({
   id,
 }: RichTextEditorProps) {
   const [mounted, setMounted] = useState(false)
+  const [internalValue, setInternalValue] = useState(value || '')
+  const onChangeRef = useRef(onChange)
+  const lastPropValueRef = useRef(value || '')
+
+  // Update ref when onChange changes
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  // Sync internal value with prop value (only if prop changed externally)
+  useEffect(() => {
+    const normalizedValue = value || ''
+    if (normalizedValue !== lastPropValueRef.current) {
+      lastPropValueRef.current = normalizedValue
+      setInternalValue(normalizedValue)
+    }
+  }, [value])
 
   useEffect(() => {
     setMounted(true)
@@ -60,6 +77,16 @@ export function RichTextEditor({
     'link',
   ]
 
+  const handleChange = useCallback((newValue: string) => {
+    setInternalValue(newValue)
+    lastPropValueRef.current = newValue
+    try {
+      onChangeRef.current(newValue)
+    } catch (error) {
+      console.error('Error in onChange callback:', error)
+    }
+  }, [])
+
   if (!mounted) {
     return (
       <div className="space-y-2">
@@ -83,8 +110,8 @@ export function RichTextEditor({
       <div className="rich-text-editor-wrapper">
         <ReactQuill
           theme="snow"
-          value={value || ''}
-          onChange={onChange}
+          value={internalValue}
+          onChange={handleChange}
           modules={modules}
           formats={formats}
           placeholder={placeholder}
