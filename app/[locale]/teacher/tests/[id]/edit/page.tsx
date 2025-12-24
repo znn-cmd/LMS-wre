@@ -337,9 +337,14 @@ export default function EditTestPage() {
                             <div className="rounded border overflow-hidden">
                               {(() => {
                                 // Convert stored path to API route for display
-                                const mediaUrl = question.mediaUrl.startsWith('/uploads/')
-                                  ? `/api${question.mediaUrl}`
-                                  : question.mediaUrl
+                                let mediaUrl = question.mediaUrl
+                                if (mediaUrl.startsWith('/uploads/')) {
+                                  // Convert /uploads/tests/... to /api/uploads/tests/...
+                                  mediaUrl = `/api${mediaUrl}`
+                                } else if (!mediaUrl.startsWith('/api/') && !mediaUrl.startsWith('http')) {
+                                  // Relative path without /uploads/, add it
+                                  mediaUrl = `/api/uploads/${mediaUrl.replace(/^\//, '')}`
+                                }
                                 return question.mediaType === 'image' ? (
                                   <img src={mediaUrl} alt="Question media" className="w-full max-h-48 object-contain" />
                                 ) : question.mediaType === 'video' ? (

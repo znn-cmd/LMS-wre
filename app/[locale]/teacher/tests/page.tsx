@@ -16,6 +16,19 @@ export default function TeacherTestsPage() {
 
   useEffect(() => {
     fetchTests()
+    
+    // Refresh tests when page becomes visible (user returns from editing)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchTests()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   const fetchTests = async () => {

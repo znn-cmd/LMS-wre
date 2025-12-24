@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { X, Upload, Image as ImageIcon, Video, Trash2, Plus } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
+import { useTranslations } from 'next-intl'
 
 interface QuestionEditorProps {
   open: boolean
@@ -18,6 +20,8 @@ interface QuestionEditorProps {
 }
 
 export function QuestionEditor({ open, onClose, onSave, question, testId }: QuestionEditorProps) {
+  const { toast } = useToast()
+  const t = useTranslations()
   const [questionType, setQuestionType] = useState<string>('SINGLE_CHOICE')
   const [questionEn, setQuestionEn] = useState('')
   const [questionRu, setQuestionRu] = useState('')
@@ -41,9 +45,19 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
       setExplanationRu(question.explanationRu || '')
       // Convert stored path to API route for display
       const storedUrl = question.mediaUrl || ''
-      const displayUrl = storedUrl && storedUrl.startsWith('/uploads/') 
-        ? `/api${storedUrl}` 
-        : storedUrl
+      let displayUrl = storedUrl
+      if (storedUrl) {
+        if (storedUrl.startsWith('/uploads/')) {
+          // Convert /uploads/... to /api/uploads/...
+          displayUrl = `/api${storedUrl}`
+        } else if (storedUrl.startsWith('/api/uploads/')) {
+          // Already in API format, keep as is
+          displayUrl = storedUrl
+        } else if (!storedUrl.startsWith('http')) {
+          // Relative path without /uploads/, add it
+          displayUrl = `/api/uploads/${storedUrl.replace(/^\//, '')}`
+        }
+      }
       setMediaUrl(displayUrl)
       setMediaType(question.mediaType || null)
       setOptions(question.options ? (Array.isArray(question.options) ? question.options : []) : [])
@@ -94,13 +108,26 @@ export function QuestionEditor({ open, onClose, onSave, question, testId }: Ques
       }
 
       const data = await res.json()
-      // Use API route for serving files
-      const apiUrl = `/api/uploads/${data.url.replace(/^\//, '')}`
+      // Convert relative path to API route for display
+      // data.url is like "/uploads/tests/..." -> convert to "/api/uploads/tests/..."
+      const apiUrl = data.url.startsWith('/uploads/') 
+        ? `/api${data.url}` 
+        : `/api/uploads${data.url}`
       setMediaUrl(apiUrl)
       setMediaType(data.type)
+      toast({
+        title: t('common.success'),
+        description: t('test.mediaUploadSuccess'),
+        variant: 'success',
+        duration: 2000,
+      })
     } catch (error) {
       console.error('Error uploading media:', error)
-      alert('Failed to upload media: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('test.mediaUploadError'),
+        variant: 'destructive',
+      })
     } finally {
       setUploading(false)
     }

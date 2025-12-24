@@ -9,9 +9,14 @@ export async function GET(
 ) {
   try {
     const { path: pathArray } = await params
-    const filePath = pathArray.join('/')
+    let filePath = pathArray.join('/')
     
-    // Security: only allow files from uploads directory
+    // Remove 'uploads/' prefix if present (handles both /api/uploads/tests/... and /api/uploads/uploads/tests/...)
+    if (filePath.startsWith('uploads/')) {
+      filePath = filePath.replace(/^uploads\//, '')
+    }
+    
+    // Security: only allow files from tests/ or lessons/ directories
     if (!filePath.startsWith('tests/') && !filePath.startsWith('lessons/')) {
       return NextResponse.json(
         { error: 'Forbidden' },
