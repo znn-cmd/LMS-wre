@@ -43,7 +43,7 @@ export function Sidebar({ role }: SidebarProps) {
     if (role === 'ADMIN') {
       return [
         ...base,
-        { href: `/${pathname.split('/')[1]}/admin/users`, icon: Users, label: t('common.users') },
+        { href: `/${pathname.split('/')[1]}/admin/team`, icon: Users, label: t('team.team') },
         { href: `/${pathname.split('/')[1]}/admin/courses`, icon: BookOpen, label: t('common.courses') },
         { href: `/${pathname.split('/')[1]}/admin/tests`, icon: FileText, label: t('common.tests') },
         { href: `/${pathname.split('/')[1]}/admin/analytics`, icon: BarChart3, label: t('common.analytics') },
@@ -62,7 +62,7 @@ export function Sidebar({ role }: SidebarProps) {
     if (role === 'TEAM_LEAD') {
       return [
         ...base,
-        { href: `/${pathname.split('/')[1]}/teamlead/team`, icon: Users, label: 'Team' },
+        { href: `/${pathname.split('/')[1]}/teamlead/team`, icon: Users, label: t('team.team') },
         { href: `/${pathname.split('/')[1]}/teamlead/analytics`, icon: BarChart3, label: t('common.analytics') },
       ]
     }

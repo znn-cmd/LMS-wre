@@ -33,28 +33,112 @@ export async function GET() {
       ? Math.round((failedTests / testAttempts.length) * 100)
       : 0
 
-    // Mock data for charts
-    const userActivity = [
-      { date: 'Mon', active: 45 },
-      { date: 'Tue', active: 52 },
-      { date: 'Wed', active: 48 },
-      { date: 'Thu', active: 61 },
-      { date: 'Fri', active: 55 },
-      { date: 'Sat', active: 38 },
-      { date: 'Sun', active: 32 },
-    ]
+    // Get user activity for last 7 days
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-    const courseCompletion = [
-      { name: 'Thailand Course', completion: 75 },
-      { name: 'Real Estate Basics', completion: 68 },
-      { name: 'Legal Framework', completion: 82 },
-    ]
+    const recentProgress = await prisma.lessonProgress.findMany({
+      where: {
+        updatedAt: { gte: sevenDaysAgo },
+      },
+      select: {
+        updatedAt: true,
+        userId: true,
+      },
+    })
+
+    // Group by day
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const userActivityMap = new Map<string, Set<string>>()
+
+    recentProgress.forEach((p) => {
+      const day = dayNames[p.updatedAt.getDay()]
+      if (!userActivityMap.has(day)) {
+        userActivityMap.set(day, new Set())
+      }
+      userActivityMap.get(day)?.add(p.userId)
+    })
+
+    const userActivity = dayNames.map((day) => ({
+      date: day,
+      active: userActivityMap.get(day)?.size || 0,
+    }))
+
+    // Get course completion rates
+    const courses = await prisma.course.findMany({
+      where: { status: 'PUBLISHED' },
+      select: {
+        id: true,
+        titleEn: true,
+        modules: {
+          include: {
+            lessons: true,
+          },
+        },
+      },
+      take: 3,
+    })
+
+    const courseCompletion = await Promise.all(
+      courses.map(async (course) => {
+        const totalLessons = course.modules.reduce(
+          (sum, m) => sum + m.lessons.length,
+          0
+        )
+        if (totalLessons === 0) {
+          return { name: course.titleEn, completion: 0 }
+        }
+
+        const lessonIds = course.modules.flatMap((m) =>
+          m.lessons.map((l) => l.id)
+        )
+
+        const completedLessons = await prisma.lessonProgress.count({
+          where: {
+            lessonId: { in: lessonIds },
+            status: 'COMPLETED',
+          },
+        })
+
+        const assignments = await prisma.courseAssignment.count({
+          where: { courseId: course.id },
+        })
+
+        const completion =
+          assignments > 0
+            ? Math.round((completedLessons / (totalLessons * assignments)) * 100)
+            : 0
+
+        return { name: course.titleEn, completion }
+      })
+    )
+
+    // Calculate actual time statistics
+    const allTimes = allProgress.map((p) => p.activeTime)
+    const minTime =
+      allTimes.length > 0 ? formatDuration(Math.min(...allTimes)) : '0m'
+    const maxTime =
+      allTimes.length > 0 ? formatDuration(Math.max(...allTimes)) : '0m'
 
     const timeStats = {
-      min: '5m',
+      min: minTime,
       avg: avgLessonTime,
-      max: '45m',
+      max: maxTime,
     }
+
+    // Calculate average test time
+    const allTestTimes = testAttempts
+      .map((t: any) => t.timeSpent || 0)
+      .filter((t) => t > 0)
+    const avgTestTime =
+      allTestTimes.length > 0
+        ? formatDuration(Math.floor(allTestTimes.reduce((a, b) => a + b, 0) / allTestTimes.length))
+        : '0m'
+
+    // Calculate average course completion time (sum of all lessons in a course)
+    const avgCourseTime = totalActiveTime > 0 && courses.length > 0
+      ? formatDuration(Math.floor(totalActiveTime / courses.length))
+      : '0m'
 
     return NextResponse.json({
       totalUsers,
@@ -62,9 +146,9 @@ export async function GET() {
       blockedUsers,
       inTrainingPercent: totalAssignments > 0 ? Math.round((totalAssignments / totalUsers) * 100) : 0,
       completedCoursesPercent: totalAssignments > 0 ? Math.round((completedProgress / totalAssignments) * 100) : 0,
-      avgCourseTime: '2h 30m',
+      avgCourseTime,
       avgLessonTime,
-      avgTestTime: '15m',
+      avgTestTime,
       testFailureRate,
       retakes: testAttempts.length - new Set(testAttempts.map(t => t.testId)).size,
       userActivity,
