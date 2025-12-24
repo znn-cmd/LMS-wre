@@ -251,10 +251,20 @@ export default function EditTestPage() {
               <p className="text-muted-foreground">Edit test settings and questions</p>
             </div>
           </div>
-          <Button onClick={handleSave} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="destructive" 
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={deleting}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Test
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="settings" className="space-y-4">
