@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, Save, ArrowLeft, Upload, X, Image as ImageIcon, File as FileIcon, Music } from 'lucide-react'
 import Link from 'next/link'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 export default function EditLessonPage() {
   const t = useTranslations()
@@ -65,8 +66,8 @@ export default function EditLessonPage() {
       id: `temp-${Date.now()}`,
       type: 'TEXT',
       order: (lesson.contentBlocks?.length || 0) + 1,
-      contentEn: { type: 'text', content: '' },
-      contentRu: { type: 'text', content: '' },
+      contentEn: { type: 'html', content: '' },
+      contentRu: { type: 'html', content: '' },
     }
     setLesson({
       ...lesson,
@@ -325,46 +326,42 @@ export default function EditLessonPage() {
                       <CardContent className="space-y-4">
                         {block.type === 'TEXT' && (
                           <>
-                            <div className="space-y-2">
-                              <Label>Content (English)</Label>
-                              <textarea
-                                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                value={
-                                  typeof block.contentEn === 'string'
-                                    ? block.contentEn
-                                    : block.contentEn?.content || ''
+                            <RichTextEditor
+                              label="Content (English)"
+                              id={`content-en-${block.id}`}
+                              value={
+                                typeof block.contentEn === 'string'
+                                  ? block.contentEn
+                                  : block.contentEn?.content || ''
+                              }
+                              onChange={(value) => {
+                                const newBlocks = [...(lesson.contentBlocks || [])]
+                                newBlocks[index] = {
+                                  ...block,
+                                  contentEn: { type: 'html', content: value },
                                 }
-                                onChange={(e) => {
-                                  const newBlocks = [...(lesson.contentBlocks || [])]
-                                  newBlocks[index] = {
-                                    ...block,
-                                    contentEn: { type: 'text', content: e.target.value },
-                                  }
-                                  setLesson({ ...lesson, contentBlocks: newBlocks })
-                                }}
-                                placeholder="Enter English content..."
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Content (Russian)</Label>
-                              <textarea
-                                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                value={
-                                  typeof block.contentRu === 'string'
-                                    ? block.contentRu
-                                    : block.contentRu?.content || ''
+                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              }}
+                              placeholder="Enter English content..."
+                            />
+                            <RichTextEditor
+                              label="Content (Russian)"
+                              id={`content-ru-${block.id}`}
+                              value={
+                                typeof block.contentRu === 'string'
+                                  ? block.contentRu
+                                  : block.contentRu?.content || ''
+                              }
+                              onChange={(value) => {
+                                const newBlocks = [...(lesson.contentBlocks || [])]
+                                newBlocks[index] = {
+                                  ...block,
+                                  contentRu: { type: 'html', content: value },
                                 }
-                                onChange={(e) => {
-                                  const newBlocks = [...(lesson.contentBlocks || [])]
-                                  newBlocks[index] = {
-                                    ...block,
-                                    contentRu: { type: 'text', content: e.target.value },
-                                  }
-                                  setLesson({ ...lesson, contentBlocks: newBlocks })
-                                }}
-                                placeholder="Введите русский контент..."
-                              />
-                            </div>
+                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              }}
+                              placeholder="Введите русский контент..."
+                            />
                           </>
                         )}
                         {block.type === 'FILE' && (
@@ -529,38 +526,38 @@ export default function EditLessonPage() {
                         )}
 
                         {block.type === 'ASSIGNMENT' && (
-                          <div className="space-y-2">
-                            <Label>Assignment Description (English)</Label>
-                            <textarea
-                              className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          <div className="space-y-4">
+                            <RichTextEditor
+                              label="Assignment Description (English)"
+                              id={`assignment-en-${block.id}`}
                               value={
                                 typeof block.contentEn === 'string'
                                   ? block.contentEn
                                   : block.contentEn?.content || ''
                               }
-                              onChange={(e) => {
+                              onChange={(value) => {
                                 const newBlocks = [...(lesson.contentBlocks || [])]
                                 newBlocks[index] = {
                                   ...block,
-                                  contentEn: { type: 'text', content: e.target.value },
+                                  contentEn: { type: 'html', content: value },
                                 }
                                 setLesson({ ...lesson, contentBlocks: newBlocks })
                               }}
                               placeholder="Enter assignment description..."
                             />
-                            <Label>Assignment Description (Russian)</Label>
-                            <textarea
-                              className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            <RichTextEditor
+                              label="Assignment Description (Russian)"
+                              id={`assignment-ru-${block.id}`}
                               value={
                                 typeof block.contentRu === 'string'
                                   ? block.contentRu
                                   : block.contentRu?.content || ''
                               }
-                              onChange={(e) => {
+                              onChange={(value) => {
                                 const newBlocks = [...(lesson.contentBlocks || [])]
                                 newBlocks[index] = {
                                   ...block,
-                                  contentRu: { type: 'text', content: e.target.value },
+                                  contentRu: { type: 'html', content: value },
                                 }
                                 setLesson({ ...lesson, contentBlocks: newBlocks })
                               }}
