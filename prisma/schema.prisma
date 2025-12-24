@@ -181,6 +181,8 @@ model Question {
   points        Int          @default(1)
   explanationRu String?
   explanationEn String?
+  mediaUrl      String?      // URL to image or video
+  mediaType     String?      // 'image' or 'video'
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

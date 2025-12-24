@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Edit } from 'lucide-react'
 import Link from 'next/link'
+import { QuestionEditor } from '@/components/question-editor'
 
 export default function EditTestPage() {
   const params = useParams()
@@ -20,6 +21,8 @@ export default function EditTestPage() {
   const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [questionEditorOpen, setQuestionEditorOpen] = useState(false)
+  const [editingQuestion, setEditingQuestion] = useState<any>(null)
 
   useEffect(() => {
     if (testId) {
@@ -69,6 +72,60 @@ export default function EditTestPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleSaveQuestion = async (questionData: any) => {
+    try {
+      if (editingQuestion) {
+        // Update existing question
+        const res = await fetch(`/api/questions/${editingQuestion.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(questionData),
+        })
+        if (!res.ok) throw new Error('Failed to update question')
+      } else {
+        // Create new question
+        const res = await fetch(`/api/tests/${testId}/questions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(questionData),
+        })
+        if (!res.ok) throw new Error('Failed to create question')
+      }
+      fetchTest()
+      setQuestionEditorOpen(false)
+      setEditingQuestion(null)
+    } catch (error) {
+      console.error('Error saving question:', error)
+      throw error
+    }
+  }
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!confirm('Delete this question?')) return
+
+    try {
+      const res = await fetch(`/api/questions/${questionId}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        fetchTest()
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error)
+      alert('Error deleting question')
+    }
+  }
+
+  const handleEditQuestion = (question: any) => {
+    setEditingQuestion(question)
+    setQuestionEditorOpen(true)
+  }
+
+  const handleAddQuestion = () => {
+    setEditingQuestion(null)
+    setQuestionEditorOpen(true)
   }
 
   if (loading) {
@@ -200,7 +257,7 @@ export default function EditTestPage() {
                     <CardTitle>Questions</CardTitle>
                     <CardDescription>Manage test questions</CardDescription>
                   </div>
-                  <Button>
+                  <Button onClick={handleAddQuestion}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Question
                   </Button>
@@ -215,20 +272,52 @@ export default function EditTestPage() {
                           <CardTitle className="text-lg">
                             Question {index + 1} ({question.type})
                           </CardTitle>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditQuestion(question)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteQuestion(question.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-2">
-                          <p className="font-medium">{question.questionEn}</p>
-                          {question.questionRu && (
-                            <p className="text-sm text-muted-foreground">{question.questionRu}</p>
+                        <div className="space-y-3">
+                          {question.mediaUrl && (
+                            <div className="rounded border overflow-hidden">
+                              {question.mediaType === 'image' ? (
+                                <img src={question.mediaUrl} alt="Question media" className="w-full max-h-48 object-contain" />
+                              ) : question.mediaType === 'video' ? (
+                                <video src={question.mediaUrl} className="w-full max-h-48" controls />
+                              ) : null}
+                            </div>
                           )}
-                          <p className="text-sm text-muted-foreground">
-                            Points: {question.points}
-                          </p>
+                          <div className="space-y-2">
+                            <p className="font-medium">{question.questionEn}</p>
+                            {question.questionRu && (
+                              <p className="text-sm text-muted-foreground">{question.questionRu}</p>
+                            )}
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span>Type: {question.type}</span>
+                              <span>Points: {question.points}</span>
+                            </div>
+                            {question.explanationEn && (
+                              <div className="mt-2 p-2 bg-muted rounded text-sm">
+                                <p className="font-medium mb-1">Explanation:</p>
+                                <p>{question.explanationEn}</p>
+                                {question.explanationRu && <p className="mt-1">{question.explanationRu}</p>}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -243,6 +332,17 @@ export default function EditTestPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <QuestionEditor
+          open={questionEditorOpen}
+          onClose={() => {
+            setQuestionEditorOpen(false)
+            setEditingQuestion(null)
+          }}
+          onSave={handleSaveQuestion}
+          question={editingQuestion}
+          testId={testId}
+        />
       </div>
     </DashboardLayout>
   )
