@@ -69,10 +69,22 @@ export default function EditLessonPage() {
       })
 
       if (res.ok) {
+        toast({
+          variant: 'success',
+          title: t('common.saved'),
+          duration: 2000,
+        })
         router.push(`/en/teacher/courses/${lesson.courseId}/edit`)
+      } else {
+        throw new Error('Failed to save lesson')
       }
     } catch (error) {
       console.error('Error saving lesson:', error)
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+      })
     } finally {
       setSaving(false)
     }
