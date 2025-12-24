@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast'
 
 export default function EditLessonPage() {
   const t = useTranslations()
+  const { toast } = useToast()
   const params = useParams()
   const router = useRouter()
   const lessonId = params.id as string
