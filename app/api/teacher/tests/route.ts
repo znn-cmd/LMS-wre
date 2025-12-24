@@ -16,10 +16,14 @@ export async function GET() {
     const tests = await prisma.test.findMany({
       where: { creatorId: teacher.id },
       include: {
-        questions: true,
+        questions: {
+          orderBy: { order: 'asc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
+
+    console.log(`Found ${tests.length} tests for teacher ${teacher.id}`)
 
     // Get attempts count and course info for each test
     const testsWithStats = await Promise.all(
