@@ -31,7 +31,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating question:', error)
     return NextResponse.json(
-      { error: 'Failed to update question' },
+      { error: error.message || 'Failed to update question' },
       { status: 500 }
     )
   }

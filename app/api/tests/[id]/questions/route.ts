@@ -41,7 +41,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error creating question:', error)
     return NextResponse.json(
-      { error: 'Failed to create question' },
+      { error: error.message || 'Failed to create question' },
       { status: 500 }
     )
   }
