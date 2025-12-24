@@ -95,32 +95,7 @@ export default function EditCoursePage() {
       console.error('Error saving modules:', error)
     }
   }
-
-  // Save all module changes before operations that reload data
-  const saveAllModules = async () => {
-    if (!course?.modules || course.modules.length === 0) return
-    
-    try {
-      await Promise.all(
-        course.modules.map((module: any) =>
-          fetch(`/api/modules/${module.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              titleEn: module.titleEn,
-              titleRu: module.titleRu,
-              descriptionEn: module.descriptionEn || null,
-              descriptionRu: module.descriptionRu || null,
-              order: module.order,
-            }),
-          })
-        )
-      )
-    } catch (error) {
-      console.error('Error saving modules:', error)
-    }
-  }
-
+ 
   const handleSave = async () => {
     setSaving(true)
     try {
