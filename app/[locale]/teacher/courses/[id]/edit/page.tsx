@@ -594,10 +594,106 @@ export default function EditCoursePage() {
                                 </p>
                               </div>
                               <div className="flex gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={async () => {
+                                    if (lessonIndex > 0) {
+                                      const newModules = [...(course.modules || [])]
+                                      const module = newModules[moduleIndex]
+                                      const lessons = [...(module.lessons || [])]
+                                      const temp = lessons[lessonIndex]
+                                      lessons[lessonIndex] = lessons[lessonIndex - 1]
+                                      lessons[lessonIndex - 1] = temp
+                                      
+                                      // Update order for all lessons in module
+                                      lessons.forEach((l: any, idx: number) => {
+                                        l.order = idx + 1
+                                      })
+                                      
+                                      newModules[moduleIndex] = {
+                                        ...module,
+                                        lessons: lessons,
+                                      }
+                                      setCourse({ ...course, modules: newModules })
+                                      
+                                      // Save lessons order
+                                      try {
+                                        await Promise.all(
+                                          lessons.map((l: any) =>
+                                            fetch(`/api/lessons/${l.id}`, {
+                                              method: 'PATCH',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                titleEn: l.titleEn,
+                                                titleRu: l.titleRu,
+                                                estimatedTime: l.estimatedTime,
+                                                minimumTime: l.minimumTime,
+                                                order: l.order,
+                                              }),
+                                            })
+                                          )
+                                        )
+                                      } catch (error) {
+                                        console.error('Error saving lessons order:', error)
+                                        // Revert on error
+                                        fetchCourse()
+                                      }
+                                    }
+                                  }}
+                                >
                                   <ArrowUp className="h-3 w-3" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={async () => {
+                                    const module = course.modules?.[moduleIndex]
+                                    if (lessonIndex < (module?.lessons?.length || 0) - 1) {
+                                      const newModules = [...(course.modules || [])]
+                                      const lessons = [...(module.lessons || [])]
+                                      const temp = lessons[lessonIndex]
+                                      lessons[lessonIndex] = lessons[lessonIndex + 1]
+                                      lessons[lessonIndex + 1] = temp
+                                      
+                                      // Update order for all lessons in module
+                                      lessons.forEach((l: any, idx: number) => {
+                                        l.order = idx + 1
+                                      })
+                                      
+                                      newModules[moduleIndex] = {
+                                        ...module,
+                                        lessons: lessons,
+                                      }
+                                      setCourse({ ...course, modules: newModules })
+                                      
+                                      // Save lessons order
+                                      try {
+                                        await Promise.all(
+                                          lessons.map((l: any) =>
+                                            fetch(`/api/lessons/${l.id}`, {
+                                              method: 'PATCH',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                titleEn: l.titleEn,
+                                                titleRu: l.titleRu,
+                                                estimatedTime: l.estimatedTime,
+                                                minimumTime: l.minimumTime,
+                                                order: l.order,
+                                              }),
+                                            })
+                                          )
+                                        )
+                                      } catch (error) {
+                                        console.error('Error saving lessons order:', error)
+                                        // Revert on error
+                                        fetchCourse()
+                                      }
+                                    }
+                                  }}
+                                >
                                   <ArrowDown className="h-3 w-3" />
                                 </Button>
                                 <Link href={`/en/teacher/lessons/${lesson.id}/edit`}>

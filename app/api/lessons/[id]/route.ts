@@ -93,6 +93,7 @@ export async function PATCH(
         titleRu: data.titleRu,
         estimatedTime: data.estimatedTime,
         minimumTime: data.minimumTime,
+        order: data.order !== undefined ? data.order : undefined,
         updatedAt: new Date(),
       },
     })
