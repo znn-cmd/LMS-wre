@@ -10,19 +10,18 @@ meta:
 
 # Build configuration
 build:
-  # Install dependencies
-  install: npm install
-  
-  # Build command (includes Prisma generation)
-  build: npm run build
+  # Skip build (false = build will run)
+  skip: false
+  # Additional commands to run during build
+  # npm install runs automatically, this is for additional steps
+  additionalCommands: "npm run build"
 
-# Runtime configuration
-runtime:
-  # Start command
-  start: npm start
-  
-  # Application port (Next.js default)
-  port: 3000
+# Run configuration
+run:
+  # Command to start the application
+  command: "npm start"
+  # Container port (Next.js default)
+  containerPort: 3000
 
 # Environment variables (set these in Amvera dashboard):
 # NEXT_PUBLIC_SUPABASE_URL
