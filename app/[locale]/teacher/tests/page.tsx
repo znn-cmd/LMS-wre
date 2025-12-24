@@ -21,10 +21,22 @@ export default function TeacherTestsPage() {
   const fetchTests = async () => {
     try {
       const res = await fetch('/api/teacher/tests')
+      if (!res.ok) {
+        console.error('Failed to fetch tests:', res.status, res.statusText)
+        setTests([])
+        return
+      }
       const data = await res.json()
-      setTests(data)
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setTests(data)
+      } else {
+        console.error('Invalid response format:', data)
+        setTests([])
+      }
     } catch (error) {
       console.error('Error fetching tests:', error)
+      setTests([])
     } finally {
       setLoading(false)
     }
