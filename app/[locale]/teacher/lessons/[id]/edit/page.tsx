@@ -34,6 +34,22 @@ export default function EditLessonPage() {
     try {
       const res = await fetch(`/api/lessons/${lessonId}`)
       const data = await res.json()
+      
+      // Parse metadata if it's a string (from Prisma JSON field)
+      if (data.contentBlocks) {
+        data.contentBlocks = data.contentBlocks.map((block: any) => {
+          if (block.metadata && typeof block.metadata === 'string') {
+            try {
+              block.metadata = JSON.parse(block.metadata)
+            } catch (e) {
+              console.error('Failed to parse metadata:', e)
+              block.metadata = {}
+            }
+          }
+          return block
+        })
+      }
+      
       setLesson(data)
     } catch (error) {
       console.error('Error fetching lesson:', error)
@@ -488,23 +504,67 @@ export default function EditLessonPage() {
                             <div className="space-y-2">
                               <Label>Images</Label>
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {block.metadata?.files?.map((file: any, fileIndex: number) => (
-                                  <div key={fileIndex} className="relative group">
-                                    <img
-                                      src={file.url}
-                                      alt={file.originalName}
-                                      className="w-full h-32 object-cover rounded-md border"
-                                    />
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-background/80"
-                                      onClick={() => handleRemoveFile(block.id, index, fileIndex)}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ))}
+                                {block.metadata?.files?.map((file: any, fileIndex: number) => {
+                                  // Handle metadata - it might be a JSON string from DB or already parsed object
+                                  let fileData = file
+                                  if (typeof file === 'string') {
+                                    try {
+                                      fileData = JSON.parse(file)
+                                    } catch (e) {
+                                      console.error('Failed to parse file metadata:', e)
+                                      fileData = { url: '', originalName: 'Unknown' }
+                                    }
+                                  }
+                                  
+                                  const imageUrl = fileData?.url || ''
+                                  const fileName = fileData?.originalName || fileData?.filename || 'Image'
+                                  
+                                  return (
+                                    <div key={fileIndex} className="relative group">
+                                      {imageUrl ? (
+                                        <img
+                                          src={imageUrl}
+                                          alt={fileName}
+                                          className="w-full h-32 object-cover rounded-md border"
+                                          onError={(e) => {
+                                            console.error('Failed to load image:', imageUrl)
+                                            const target = e.target as HTMLImageElement
+                                            target.style.display = 'none'
+                                            const parent = target.parentElement
+                                            if (parent && !parent.querySelector('.image-fallback')) {
+                                              const fallback = document.createElement('div')
+                                              fallback.className = 'image-fallback w-full h-32 flex items-center justify-center bg-muted rounded-md border'
+                                              fallback.innerHTML = `
+                                                <div class="text-center">
+                                                  <svg class="w-8 h-8 mx-auto text-muted-foreground mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                  </svg>
+                                                  <p class="text-xs text-muted-foreground">${fileName}</p>
+                                                </div>
+                                              `
+                                              parent.appendChild(fallback)
+                                            }
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="w-full h-32 flex items-center justify-center bg-muted rounded-md border">
+                                          <div className="text-center">
+                                            <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                                            <p className="text-xs text-muted-foreground">{fileName}</p>
+                                          </div>
+                                        </div>
+                                      )}
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-background/80"
+                                        onClick={() => handleRemoveFile(block.id, index, fileIndex)}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  )
+                                })}
                               </div>
                               <div className="border-2 border-dashed rounded-md p-6 text-center">
                                 <input
