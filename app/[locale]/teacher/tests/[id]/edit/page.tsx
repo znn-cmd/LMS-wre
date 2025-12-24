@@ -112,13 +112,36 @@ export default function EditTestPage() {
   const handleDelete = async () => {
     setDeleting(true)
     try {
+      console.log(`Deleting test ${testId}...`)
+      
       const res = await fetch(`/api/tests/${testId}`, {
         method: 'DELETE',
       })
 
+      console.log('Delete response status:', res.status)
+      
+      // Check if response is ok
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Failed to delete test')
+        let errorMessage = 'Failed to delete test'
+        try {
+          const errorData = await res.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (jsonError) {
+          console.error('Failed to parse error response:', jsonError)
+          errorMessage = `Server error: ${res.status} ${res.statusText}`
+        }
+        throw new Error(errorMessage)
+      }
+
+      // Try to parse success response
+      let responseData
+      try {
+        responseData = await res.json()
+        console.log('Delete response:', responseData)
+      } catch (jsonError) {
+        console.error('Failed to parse success response:', jsonError)
+        // If JSON parsing fails but status is ok, consider it a success
+        responseData = { success: true }
       }
 
       toast({
@@ -127,8 +150,10 @@ export default function EditTestPage() {
         duration: 2000,
       })
 
-      // Redirect to tests list
-      router.push('/en/teacher/tests')
+      // Redirect to tests list after a short delay
+      setTimeout(() => {
+        router.push('/en/teacher/tests')
+      }, 500)
     } catch (error) {
       console.error('Error deleting test:', error)
       toast({
@@ -136,9 +161,9 @@ export default function EditTestPage() {
         title: t('common.error'),
         description: error instanceof Error ? error.message : t('common.deleteError'),
       })
+      setDeleteDialogOpen(false)
     } finally {
       setDeleting(false)
-      setDeleteDialogOpen(false)
     }
   }
 
