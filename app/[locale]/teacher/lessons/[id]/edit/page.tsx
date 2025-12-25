@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, Save, ArrowLeft, Upload, X, Image as ImageIcon, File as FileIcon, Music } from 'lucide-react'
@@ -660,9 +661,9 @@ export default function EditLessonPage() {
                           </div>
                         )}
 
-                        {(block.type === 'VIDEO' || block.type === 'EMBED') && (
+                        {block.type === 'VIDEO' && (
                           <div className="space-y-2">
-                            <Label>URL</Label>
+                            <Label>Video URL</Label>
                             <Input
                               value={block.metadata?.url || ''}
                               onChange={(e) => {
@@ -673,8 +674,30 @@ export default function EditLessonPage() {
                                 }
                                 setLesson({ ...lesson, contentBlocks: newBlocks })
                               }}
-                              placeholder="Enter URL..."
+                              placeholder="Enter video URL..."
                             />
+                          </div>
+                        )}
+
+                        {block.type === 'EMBED' && (
+                          <div className="space-y-2">
+                            <Label>Embed Code or URL</Label>
+                            <Textarea
+                              value={block.metadata?.url || ''}
+                              onChange={(e) => {
+                                const newBlocks = [...(lesson.contentBlocks || [])]
+                                newBlocks[index] = {
+                                  ...block,
+                                  metadata: { ...block.metadata, url: e.target.value },
+                                }
+                                setLesson({ ...lesson, contentBlocks: newBlocks })
+                              }}
+                              placeholder="Paste iframe code (e.g., <iframe src='...'></iframe>) or enter URL..."
+                              rows={4}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              You can paste the full iframe code or just enter a URL
+                            </p>
                           </div>
                         )}
                       </CardContent>

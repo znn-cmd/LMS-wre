@@ -304,11 +304,20 @@ export default function LessonPage() {
                 )}
                 {block.type === 'EMBED' && block.metadata?.url && (
                   <div className="aspect-video">
-                    <iframe
-                      src={block.metadata.url}
-                      className="w-full h-full rounded-lg"
-                      allowFullScreen
-                    />
+                    {block.metadata.url.trim().startsWith('<iframe') ? (
+                      // If it's iframe HTML code, render it directly
+                      <div 
+                        dangerouslySetInnerHTML={{ __html: block.metadata.url }}
+                        className="w-full h-full"
+                      />
+                    ) : (
+                      // If it's just a URL, use it in iframe
+                      <iframe
+                        src={block.metadata.url}
+                        className="w-full h-full rounded-lg"
+                        allowFullScreen
+                      />
+                    )}
                   </div>
                 )}
               </CardContent>
