@@ -411,7 +411,7 @@ export default function TeamLeadTeamPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {members.map((member) => (
+                  {(members || []).map((member) => (
                     <TableRow key={member.id}>
                       <TableCell className="font-medium">
                         {member.user.firstName} {member.user.lastName}
@@ -505,7 +505,7 @@ export default function TeamLeadTeamPage() {
                                       <SelectValue placeholder={t('team.selectCoursePlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {courses.map((course) => (
+                                      {(courses || []).map((course) => (
                                         <SelectItem key={course.id} value={course.id}>
                                           {locale === 'ru' ? course.titleRu : course.titleEn}
                                         </SelectItem>
@@ -569,7 +569,7 @@ export default function TeamLeadTeamPage() {
                                       <SelectValue placeholder={t('team.selectTestPlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {tests.map((test) => (
+                                      {(tests || []).map((test) => (
                                         <SelectItem key={test.id} value={test.id}>
                                           {locale === 'ru' ? test.titleRu : test.titleEn}
                                         </SelectItem>

@@ -330,7 +330,7 @@ export default function AdminTeamPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
+                    {(users || []).map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">
                           {user.firstName} {user.lastName}
@@ -375,7 +375,7 @@ export default function AdminTeamPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {teamLeads.map((tl) => (
+                  {(teamLeads || []).map((tl) => (
                     <Card key={tl.id}>
                       <CardHeader>
                         <div className="flex items-center justify-between">
@@ -413,7 +413,7 @@ export default function AdminTeamPage() {
                                       <SelectValue placeholder={t('team.selectStudentPlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {students.map((student) => (
+                                      {(students || []).map((student) => (
                                         <SelectItem key={student.id} value={student.id}>
                                           {student.firstName} {student.lastName} ({student.email})
                                         </SelectItem>
@@ -442,7 +442,7 @@ export default function AdminTeamPage() {
                           </div>
                           {tl.members && tl.members.length > 0 && (
                             <div className="mt-4 space-y-2">
-                              {tl.members.map((member: any) => (
+                              {(tl.members || []).map((member: any) => (
                                 <div
                                   key={member.id}
                                   className="flex items-center justify-between p-2 border rounded"
@@ -499,7 +499,7 @@ export default function AdminTeamPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {teachers.map((teacher) => (
+                    {(teachers || []).map((teacher) => (
                       <TableRow key={teacher.id}>
                         <TableCell className="font-medium">
                           {teacher.firstName} {teacher.lastName}
@@ -536,7 +536,7 @@ export default function AdminTeamPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students.map((student) => (
+                    {(students || []).map((student) => (
                       <TableRow key={student.id}>
                         <TableCell className="font-medium">
                           {student.firstName} {student.lastName}
