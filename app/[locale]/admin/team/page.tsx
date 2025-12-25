@@ -65,9 +65,10 @@ export default function AdminTeamPage() {
     try {
       const res = await fetch('/api/admin/users')
       const data = await res.json()
-      setUsers(data)
+      setUsers(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching users:', error)
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -77,9 +78,10 @@ export default function AdminTeamPage() {
     try {
       const res = await fetch('/api/admin/team')
       const data = await res.json()
-      setTeamLeads(data)
+      setTeamLeads(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching team leads:', error)
+      setTeamLeads([])
     }
   }
 
@@ -87,9 +89,10 @@ export default function AdminTeamPage() {
     try {
       const res = await fetch('/api/courses')
       const data = await res.json()
-      setCourses(data.filter((c: any) => c.status === 'PUBLISHED'))
+      setCourses(Array.isArray(data) ? data.filter((c: any) => c.status === 'PUBLISHED') : [])
     } catch (error) {
       console.error('Error fetching courses:', error)
+      setCourses([])
     }
   }
 
@@ -97,9 +100,10 @@ export default function AdminTeamPage() {
     try {
       const res = await fetch('/api/teacher/tests')
       const data = await res.json()
-      setTests(data)
+      setTests(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching tests:', error)
+      setTests([])
     }
   }
 

@@ -94,9 +94,10 @@ export default function TeamLeadTeamPage() {
     try {
       const res = await fetch('/api/courses')
       const data = await res.json()
-      setCourses(data.filter((c: any) => c.status === 'PUBLISHED'))
+      setCourses(Array.isArray(data) ? data.filter((c: any) => c.status === 'PUBLISHED') : [])
     } catch (error) {
       console.error('Error fetching courses:', error)
+      setCourses([])
     }
   }
 
@@ -104,9 +105,10 @@ export default function TeamLeadTeamPage() {
     try {
       const res = await fetch('/api/teacher/tests')
       const data = await res.json()
-      setTests(data)
+      setTests(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching tests:', error)
+      setTests([])
     }
   }
 
@@ -474,7 +476,7 @@ export default function TeamLeadTeamPage() {
                                   <div className="space-y-2">
                                     <Label>{t('team.currentCourses')}</Label>
                                     <div className="space-y-1">
-                                      {member.courses.map((course) => (
+                                      {(member.courses || []).map((course) => (
                                         <div
                                           key={course.id}
                                           className="flex items-center justify-between p-2 border rounded"
@@ -547,7 +549,7 @@ export default function TeamLeadTeamPage() {
                                   <div className="space-y-2">
                                     <Label>{t('team.currentTests')}</Label>
                                     <div className="space-y-1">
-                                      {member.tests.map((test) => (
+                                      {(member.tests || []).map((test) => (
                                         <div
                                           key={test.id}
                                           className="flex items-center justify-between p-2 border rounded"
