@@ -16,8 +16,8 @@ export async function GET(
       filePath = filePath.replace(/^uploads\//, '')
     }
     
-    // Security: only allow files from tests/ or lessons/ directories
-    if (!filePath.startsWith('tests/') && !filePath.startsWith('lessons/')) {
+    // Security: only allow files from tests/, lessons/, or course/ directories
+    if (!filePath.startsWith('tests/') && !filePath.startsWith('lessons/') && !filePath.startsWith('course/')) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
